@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
 export function ThemeToggle() {
-  // Lazy initializer (não effect) pra ler, no primeiro render do cliente, a
-  // classe que o script inline em layout.tsx já aplicou na <html> antes do
-  // paint — evita tanto flash quanto o cascading render de setState em effect.
-  const [isDark, setIsDark] = useState<boolean | null>(() =>
-    typeof document === "undefined"
-      ? null
-      : document.documentElement.classList.contains("dark")
-  );
+  // Sempre começa "false" — igual nos dois lados (servidor não sabe o tema).
+  // O script anti-flash em layout.tsx já deixou a <html> com a classe certa
+  // antes do paint; aqui só sincronizamos o ícone/aria-label do botão com
+  // ela logo depois do mount, sem gerar mismatch de hidratação.
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sincroniza com uma classe do DOM que um script fora do React já aplicou; não dá pra saber isso no primeiro render (server não tem document).
+    setIsDark(document.documentElement.classList.contains("dark"));
+  }, []);
 
   function toggle() {
     const next = !document.documentElement.classList.contains("dark");
