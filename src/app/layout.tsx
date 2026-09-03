@@ -14,7 +14,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div className="flex min-h-screen">
           <Sidebar />
           <main className="flex-1 overflow-y-auto">
-            <div className="mx-auto max-w-6xl px-8 py-8">{children}</div>
+            <div className="mx-auto max-w-screen-2xl px-8 py-8 2xl:px-12">{children}</div>
           </main>
         </div>
       </body>
