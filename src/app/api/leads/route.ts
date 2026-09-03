@@ -1,46 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deleteLead, getLead, updateLead, updateLeadStatus } from "@/lib/repo/leads";
-import { listEventsForLead } from "@/lib/repo/events";
-import { getMeetingForLead } from "@/lib/repo/meetings";
-import type { LeadStatus } from "@/lib/types";
+import { createLead, listLeads } from "@/lib/repo/leads";
+import { addEvent } from "@/lib/repo/events";
+import type { Mode } from "@/lib/types";
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-  const lead = getLead(id);
-  if (!lead) return NextResponse.json({ error: "Lead não encontrado." }, { status: 404 });
-  return NextResponse.json({
-    lead,
-    events: listEventsForLead(id),
-    meeting: getMeetingForLead(id),
-  });
+export async function GET() {
+  return NextResponse.json(listLeads());
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
+// Cadastro manual de um lead (o formulário "Novo lead" na tela de Leads).
+export async function POST(req: NextRequest) {
   const body = await req.json();
-
-  if (body.status) {
-    const lead = updateLeadStatus(id, body.status as LeadStatus);
-    if (!lead) return NextResponse.json({ error: "Lead não encontrado." }, { status: 404 });
-    return NextResponse.json(lead);
+  if (!body?.name) {
+    return NextResponse.json({ error: "Nome é obrigatório." }, { status: 400 });
   }
 
-  const lead = updateLead(id, body);
-  if (!lead) return NextResponse.json({ error: "Lead não encontrado." }, { status: 404 });
-  return NextResponse.json(lead);
-}
+  const mode: Mode = body.mode === "MODO_2" ? "MODO_2" : "MODO_1";
+  const lead = createLead({
+    name: body.name,
+    phone: body.phone || null,
+    whatsapp: body.whatsapp || null,
+    instagram: body.instagram || null,
+    source: body.source || null,
+    mode,
+  });
+  addEvent({
+    leadId: lead.id,
+    channel: "SISTEMA",
+    direction: "SAIDA",
+    content: "Lead cadastrado manualmente.",
+  });
 
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-  deleteLead(id);
-  return NextResponse.json({ ok: true });
+  return NextResponse.json(lead, { status: 201 });
 }
