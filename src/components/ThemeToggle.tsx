@@ -11,7 +11,7 @@ const FILL_COLOR = {
   light: [248, 250, 252], // #f8fafc
 };
 
-const CELL = 110; // px por célula da grade — controla quantas bolinhas nascem
+const CELL = 145; // px por célula da grade — controla quantas bolinhas nascem
 const DROP_DURATION = 1000; // ms, animação de cada bolinha individual
 const SPEED = 1; // ms de atraso por pixel de distância até o centro (onda)
 const HOLD_BEFORE_REMOVE = 150; // ms segurando a tela já coberta antes de tirar a camada
@@ -55,9 +55,12 @@ function spawnDrops(goingDark: boolean, onFilled: () => void) {
       const peakOpacity = 0.85 + Math.random() * 0.13;
 
       const drop = document.createElement("div");
+      // will-change avisa o navegador com antecedência pra já promover a
+      // bolinha a uma layer própria, em vez de fazer isso no meio da
+      // animação (uma das causas da travadinha no final).
       drop.style.cssText = `position:absolute;left:${x - diameter / 2}px;top:${
         y - diameter / 2
-      }px;width:${diameter}px;height:${diameter}px;border-radius:9999px;background:rgb(${r} ${g} ${b});transform:scale(0);opacity:0;`;
+      }px;width:${diameter}px;height:${diameter}px;border-radius:9999px;background:rgb(${r} ${g} ${b});transform:scale(0);opacity:0;will-change:transform,opacity;contain:strict;`;
       fragment.appendChild(drop);
 
       drop.animate(
@@ -74,8 +77,19 @@ function spawnDrops(goingDark: boolean, onFilled: () => void) {
   overlay.appendChild(fragment);
 
   window.setTimeout(() => {
-    onFilled(); // troca o tema de verdade agora, escondido atrás da camada 100% coberta
-    window.setTimeout(() => overlay.remove(), HOLD_BEFORE_REMOVE);
+    // Trocar o tema de verdade recalcula o CSS de boa parte da página de
+    // uma vez só (todo elemento com classe dark:...) — se isso e a
+    // remoção de ~100 bolinhas acontecerem no mesmo instante, o navegador
+    // acumula tudo num frame só e trava visivelmente. Por isso: troca o
+    // tema agora (escondido atrás da camada, que já é essa cor exata),
+    // deixa o navegador pintar esse resultado em frames próprios
+    // (2x requestAnimationFrame), e SÓ DEPOIS remove as bolinhas.
+    onFilled();
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.setTimeout(() => overlay.remove(), HOLD_BEFORE_REMOVE);
+      });
+    });
   }, maxDelay + DROP_DURATION);
 }
 
