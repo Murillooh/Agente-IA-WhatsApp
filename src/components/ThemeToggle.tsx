@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
-const CELL = 190; // px por célula da grade — controla quantas bolinhas nascem
+const CELL = 220; // px por célula da grade — controla quantas bolinhas nascem
 const DROP_DURATION = 1300; // ms, animação de cada bolinha individual
 const SPEED = 1.6; // ms de atraso por pixel de distância até o centro (onda)
-const STEPS = 22; // nº de keyframes "assados" — resolução da onda
+const STEPS = 18; // nº de recomputações da máscara ao longo da animação (steps(), não contínuo)
 
 function easeOutCubic(p: number) {
   return 1 - Math.pow(1 - p, 3);
@@ -73,7 +73,13 @@ function revealWithDrops(onComplete?: () => void) {
 
   const animation = document.documentElement.animate(keyframes, {
     duration: totalDuration,
-    easing: "linear", // o "ease" já tá embutido no raio de cada keyframe
+    // steps() em vez de "linear": clip-path com formato complexo não é
+    // acelerado por GPU, o navegador precisa re-rasterizar a máscara da
+    // página inteira toda vez que o valor muda. Interpolação contínua
+    // (linear/ease) faz isso ~60x por segundo — travava muito em
+    // hardware mais fraco. Com steps(), só recalcula 1x por keyframe
+    // (bem menos vezes), o resto do tempo é a mesma máscara já pronta.
+    easing: `steps(${STEPS}, end)`,
     pseudoElement: "::view-transition-new(root)",
     fill: "forwards",
   });
