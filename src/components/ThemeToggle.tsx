@@ -73,13 +73,7 @@ function revealWithDrops(onComplete?: () => void) {
 
   const animation = document.documentElement.animate(keyframes, {
     duration: totalDuration,
-    // steps() em vez de "linear": clip-path com formato complexo não é
-    // acelerado por GPU, o navegador precisa re-rasterizar a máscara da
-    // página inteira toda vez que o valor muda. Interpolação contínua
-    // (linear/ease) faz isso ~60x por segundo — travava muito em
-    // hardware mais fraco. Com steps(), só recalcula 1x por keyframe
-    // (bem menos vezes), o resto do tempo é a mesma máscara já pronta.
-    easing: `steps(${STEPS}, end)`,
+    easing: "linear", // o "ease" já tá embutido no raio de cada keyframe
     pseudoElement: "::view-transition-new(root)",
     fill: "forwards",
   });
