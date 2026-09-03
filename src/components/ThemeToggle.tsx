@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
-const CELL = 220; // px por célula da grade — controla quantas bolinhas nascem
+const CELL = 350; // px por célula da grade — controla quantas bolinhas nascem
 const DROP_DURATION = 1300; // ms, animação de cada bolinha individual
 const SPEED = 1.6; // ms de atraso por pixel de distância até o centro (onda)
-const STEPS = 18; // nº de recomputações da máscara ao longo da animação (steps(), não contínuo)
+const STEPS = 12; // nº de recomputações da máscara ao longo da animação (steps(), não contínuo)
 
 function easeOutCubic(p: number) {
   return 1 - Math.pow(1 - p, 3);
