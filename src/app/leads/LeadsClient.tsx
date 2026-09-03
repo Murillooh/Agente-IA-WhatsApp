@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Upload, PhoneCall, Loader2, Users } from "lucide-react";
+import { Plus, Upload, PhoneCall, Loader2, Users, Search, X } from "lucide-react";
 import { StatusBadge, ModeBadge } from "@/components/Badges";
-import type { Lead, Mode } from "@/lib/types";
+import type { Lead, LeadStatus, Mode } from "@/lib/types";
+import { MODE_LABELS, STATUS_LABELS } from "@/lib/types";
 
 export function LeadsClient({ leads }: { leads: Lead[] }) {
   const router = useRouter();
@@ -13,6 +14,34 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
   const [showImport, setShowImport] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [running, setRunning] = useState(false);
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<LeadStatus | "ALL">("ALL");
+  const [modeFilter, setModeFilter] = useState<Mode | "ALL">("ALL");
+
+  const filtersActive = search.trim() !== "" || statusFilter !== "ALL" || modeFilter !== "ALL";
+
+  const filteredLeads = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return leads.filter((lead) => {
+      if (statusFilter !== "ALL" && lead.status !== statusFilter) return false;
+      if (modeFilter !== "ALL" && lead.mode !== modeFilter) return false;
+      if (term) {
+        const haystack = [lead.name, lead.whatsapp, lead.phone, lead.instagram, lead.source]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(term)) return false;
+      }
+      return true;
+    });
+  }, [leads, search, statusFilter, modeFilter]);
+
+  function clearFilters() {
+    setSearch("");
+    setStatusFilter("ALL");
+    setModeFilter("ALL");
+  }
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -24,9 +53,12 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
   }
 
   function toggleAll() {
-    setSelected((prev) =>
-      prev.size === leads.length ? new Set() : new Set(leads.map((l) => l.id))
-    );
+    setSelected((prev) => {
+      const visibleIds = filteredLeads.map((l) => l.id);
+      const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => prev.has(id));
+      if (allVisibleSelected) return new Set();
+      return new Set(visibleIds);
+    });
   }
 
   async function runBatch() {
@@ -51,7 +83,9 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Leads</h1>
           <p className="mt-1.5 text-sm text-slate-500">
-            {leads.length} lead(s) cadastrado(s).
+            {filtersActive
+              ? `${filteredLeads.length} de ${leads.length} lead(s).`
+              : `${leads.length} lead(s) cadastrado(s).`}
           </p>
         </div>
         <div className="flex gap-2">
@@ -62,6 +96,57 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
             <Plus size={15} /> Novo lead
           </button>
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative min-w-[220px] flex-1">
+          <Search
+            size={15}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+          />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por nome, contato ou origem..."
+            className="input pl-9"
+          />
+        </div>
+        <div className="w-full shrink-0 sm:w-44">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as LeadStatus | "ALL")}
+            className="input"
+          >
+            <option value="ALL">Todos os status</option>
+            {Object.entries(STATUS_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="w-full shrink-0 sm:w-60">
+          <select
+            value={modeFilter}
+            onChange={(e) => setModeFilter(e.target.value as Mode | "ALL")}
+            className="input"
+          >
+            <option value="ALL">Todos os modos</option>
+            {Object.entries(MODE_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+        {filtersActive && (
+          <button
+            onClick={clearFilters}
+            className="flex items-center gap-1 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
+          >
+            <X size={14} /> Limpar
+          </button>
+        )}
       </div>
 
       {selected.size > 0 && (
@@ -83,7 +168,10 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
               <th className="px-4 py-3">
                 <input
                   type="checkbox"
-                  checked={leads.length > 0 && selected.size === leads.length}
+                  checked={
+                    filteredLeads.length > 0 &&
+                    filteredLeads.every((l) => selected.has(l.id))
+                  }
                   onChange={toggleAll}
                   className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                 />
@@ -96,7 +184,7 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
             </tr>
           </thead>
           <tbody>
-            {leads.length === 0 && (
+            {filteredLeads.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-12">
                   <div className="flex flex-col items-center gap-2 text-center">
@@ -104,13 +192,23 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
                       <Users size={20} />
                     </span>
                     <p className="text-sm text-slate-400">
-                      Nenhum lead ainda. Importe um CSV ou adicione manualmente.
+                      {leads.length === 0
+                        ? "Nenhum lead ainda. Importe um CSV ou adicione manualmente."
+                        : "Nenhum lead encontrado com esse filtro."}
                     </p>
+                    {filtersActive && leads.length > 0 && (
+                      <button
+                        onClick={clearFilters}
+                        className="text-sm font-medium text-indigo-600 hover:underline"
+                      >
+                        Limpar filtros
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
             )}
-            {leads.map((lead) => (
+            {filteredLeads.map((lead) => (
               <tr
                 key={lead.id}
                 className="border-b border-slate-50 transition-colors last:border-0 hover:bg-slate-50"
