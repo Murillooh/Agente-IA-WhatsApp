@@ -34,19 +34,6 @@ body {
     Arial, sans-serif;
 }
 
-/*
- * Troca de tema anima como um círculo que nasce no botão e cresce até
- * cobrir a tela (View Transitions API, disparado em ThemeToggle.tsx).
- * Sem isso o navegador faz um cross-fade padrão por cima do clip-path
- * e os dois efeitos brigam — desativamos a animação default e deixamos
- * só o clip-path que a gente controla via Web Animations API.
- */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-
 .card {
   border-radius: 0.875rem;
   border: 1px solid #e2e8f0;
