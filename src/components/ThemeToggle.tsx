@@ -15,8 +15,7 @@ export function ThemeToggle() {
     setIsDark(document.documentElement.classList.contains("dark"));
   }, []);
 
-  function toggle() {
-    const next = !document.documentElement.classList.contains("dark");
+  function applyTheme(next: boolean) {
     document.documentElement.classList.toggle("dark", next);
     try {
       localStorage.setItem("theme", next ? "dark" : "light");
@@ -24,6 +23,48 @@ export function ThemeToggle() {
       // localStorage indisponível (modo privado etc.) — só não persiste.
     }
     setIsDark(next);
+  }
+
+  function toggle(e: React.MouseEvent<HTMLButtonElement>) {
+    const next = !document.documentElement.classList.contains("dark");
+
+    const startViewTransition = document.startViewTransition?.bind(document);
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Navegador sem suporte (ou usuário pediu menos animação): troca direto,
+    // sem o círculo — funciona igual, só sem o efeito.
+    if (!startViewTransition || reducedMotion) {
+      applyTheme(next);
+      return;
+    }
+
+    // Nasce exatamente no botão que foi clicado.
+    const x = e.clientX;
+    const y = e.clientY;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = startViewTransition(() => {
+      applyTheme(next);
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 650,
+          easing: "ease-in-out",
+          pseudoElement: "::view-transition-new(root)",
+        }
+      );
+    });
   }
 
   return (

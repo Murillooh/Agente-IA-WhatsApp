@@ -34,13 +34,17 @@ body {
     Arial, sans-serif;
 }
 
-/* Anima a troca de tema em qualquer elemento (o botão de modo escuro conta com isso). */
-*,
-*::before,
-*::after {
-  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
-  transition-timing-function: ease;
-  transition-duration: 200ms;
+/*
+ * Troca de tema anima como um círculo que nasce no botão e cresce até
+ * cobrir a tela (View Transitions API, disparado em ThemeToggle.tsx).
+ * Sem isso o navegador faz um cross-fade padrão por cima do clip-path
+ * e os dois efeitos brigam — desativamos a animação default e deixamos
+ * só o clip-path que a gente controla via Web Animations API.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
 }
 
 .card {
