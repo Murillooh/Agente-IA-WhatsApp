@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle, CalendarClock } from "lucide-react";
 import type { Meeting } from "@/lib/types";
 
 type MeetingRow = Meeting & { leadName: string };
 
 const statusStyles: Record<string, string> = {
-  AGENDADA: "bg-violet-100 text-violet-700",
-  REALIZADA: "bg-emerald-100 text-emerald-700",
-  CANCELADA: "bg-rose-100 text-rose-700",
+  AGENDADA: "bg-violet-50 text-violet-700 ring-violet-600/20",
+  REALIZADA: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  CANCELADA: "bg-rose-50 text-rose-700 ring-rose-600/20",
 };
 
 export function MeetingsClient({ meetings }: { meetings: MeetingRow[] }) {
@@ -26,37 +26,48 @@ export function MeetingsClient({ meetings }: { meetings: MeetingRow[] }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Reuniões</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Reuniões</h1>
+        <p className="mt-1.5 text-sm text-slate-500">
           Todas as reuniões agendadas pela prospecção — o objetivo final do sistema.
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      <div className="card overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-100 text-xs text-slate-400">
+          <thead className="border-b border-slate-100 text-xs font-medium uppercase tracking-wide text-slate-400">
             <tr>
-              <th className="px-4 py-3 font-medium">Lead</th>
-              <th className="px-4 py-3 font-medium">Data</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Notas</th>
-              <th className="px-4 py-3 font-medium"></th>
+              <th className="px-4 py-3">Lead</th>
+              <th className="px-4 py-3">Data</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Notas</th>
+              <th className="px-4 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {meetings.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
-                  Nenhuma reunião agendada ainda.
+                <td colSpan={5} className="px-4 py-12">
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-slate-300">
+                      <CalendarClock size={20} />
+                    </span>
+                    <p className="text-sm text-slate-400">Nenhuma reunião agendada ainda.</p>
+                  </div>
                 </td>
               </tr>
             )}
             {meetings.map((m) => (
-              <tr key={m.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50">
+              <tr
+                key={m.id}
+                className="border-b border-slate-50 transition-colors last:border-0 hover:bg-slate-50"
+              >
                 <td className="px-4 py-3">
-                  <Link href={`/leads/${m.leadId}`} className="font-medium text-slate-900 hover:underline">
+                  <Link
+                    href={`/leads/${m.leadId}`}
+                    className="font-medium text-slate-900 hover:text-indigo-600 hover:underline"
+                  >
                     {m.leadName}
                   </Link>
                 </td>
@@ -68,7 +79,7 @@ export function MeetingsClient({ meetings }: { meetings: MeetingRow[] }) {
                 </td>
                 <td className="px-4 py-3">
                   <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${statusStyles[m.status]}`}
+                    className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${statusStyles[m.status]}`}
                   >
                     {m.status}
                   </span>
@@ -80,14 +91,14 @@ export function MeetingsClient({ meetings }: { meetings: MeetingRow[] }) {
                       <button
                         onClick={() => updateStatus(m.leadId, "REALIZADA")}
                         title="Marcar como realizada"
-                        className="text-emerald-600 hover:text-emerald-700"
+                        className="text-emerald-600 transition-colors hover:text-emerald-700"
                       >
                         <CheckCircle2 size={16} />
                       </button>
                       <button
                         onClick={() => updateStatus(m.leadId, "CANCELADA")}
                         title="Cancelar"
-                        className="text-slate-400 hover:text-rose-600"
+                        className="text-slate-400 transition-colors hover:text-rose-600"
                       >
                         <XCircle size={16} />
                       </button>
