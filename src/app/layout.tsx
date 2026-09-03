@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Sidebar } from "@/components/Sidebar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,6 +26,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <main className="flex-1 overflow-y-auto">
             <div className="mx-auto max-w-screen-2xl px-8 py-8 2xl:px-12">{children}</div>
           </main>
+        </div>
+        <div className="fixed right-5 top-5 z-40">
+          <ThemeToggle />
         </div>
       </body>
     </html>
