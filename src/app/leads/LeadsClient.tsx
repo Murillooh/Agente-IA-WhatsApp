@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Upload, PhoneCall, Loader2 } from "lucide-react";
+import { Plus, Upload, PhoneCall, Loader2, Users } from "lucide-react";
 import { StatusBadge, ModeBadge } from "@/components/Badges";
 import type { Lead, Mode } from "@/lib/types";
 
@@ -46,78 +46,88 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold text-slate-900">Leads</h1>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Leads</h1>
+          <p className="mt-1.5 text-sm text-slate-500">
+            {leads.length} lead(s) cadastrado(s).
+          </p>
+        </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => setShowImport(true)}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
+          <button onClick={() => setShowImport(true)} className="btn-secondary gap-1.5">
             <Upload size={15} /> Importar CSV
           </button>
-          <button
-            onClick={() => setShowAdd(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800"
-          >
+          <button onClick={() => setShowAdd(true)} className="btn-primary gap-1.5">
             <Plus size={15} /> Novo lead
           </button>
         </div>
       </div>
 
       {selected.size > 0 && (
-        <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5">
-          <span className="text-sm text-slate-600">
+        <div className="flex items-center justify-between rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-2.5">
+          <span className="text-sm font-medium text-indigo-700">
             {selected.size} lead(s) selecionado(s)
           </span>
-          <button
-            onClick={runBatch}
-            disabled={running}
-            className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
-          >
+          <button onClick={runBatch} disabled={running} className="btn-primary gap-1.5">
             {running ? <Loader2 size={14} className="animate-spin" /> : <PhoneCall size={14} />}
             Rodar automação em lote
           </button>
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      <div className="card overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-100 text-xs text-slate-400">
+          <thead className="border-b border-slate-100 text-xs font-medium uppercase tracking-wide text-slate-400">
             <tr>
-              <th className="px-4 py-3 font-medium">
+              <th className="px-4 py-3">
                 <input
                   type="checkbox"
                   checked={leads.length > 0 && selected.size === leads.length}
                   onChange={toggleAll}
+                  className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                 />
               </th>
-              <th className="px-4 py-3 font-medium">Nome</th>
-              <th className="px-4 py-3 font-medium">Contato</th>
-              <th className="px-4 py-3 font-medium">Modo</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Origem</th>
+              <th className="px-4 py-3">Nome</th>
+              <th className="px-4 py-3">Contato</th>
+              <th className="px-4 py-3">Modo</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Origem</th>
             </tr>
           </thead>
           <tbody>
             {leads.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-sm text-slate-400">
-                  Nenhum lead ainda. Importe um CSV ou adicione manualmente.
+                <td colSpan={6} className="px-4 py-12">
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-slate-300">
+                      <Users size={20} />
+                    </span>
+                    <p className="text-sm text-slate-400">
+                      Nenhum lead ainda. Importe um CSV ou adicione manualmente.
+                    </p>
+                  </div>
                 </td>
               </tr>
             )}
             {leads.map((lead) => (
-              <tr key={lead.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50">
+              <tr
+                key={lead.id}
+                className="border-b border-slate-50 transition-colors last:border-0 hover:bg-slate-50"
+              >
                 <td className="px-4 py-3">
                   <input
                     type="checkbox"
                     checked={selected.has(lead.id)}
                     onChange={() => toggle(lead.id)}
+                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                   />
                 </td>
                 <td className="px-4 py-3">
-                  <Link href={`/leads/${lead.id}`} className="font-medium text-slate-900 hover:underline">
+                  <Link
+                    href={`/leads/${lead.id}`}
+                    className="font-medium text-slate-900 hover:text-indigo-600 hover:underline"
+                  >
                     {lead.name}
                   </Link>
                 </td>
@@ -276,8 +286,10 @@ function ImportCsvModal({ onClose, onDone }: { onClose: () => void; onDone: () =
           className="input font-mono text-xs"
         />
         {result && (
-          <div className="text-xs text-slate-600">
-            <p>{result.created} lead(s) importado(s).</p>
+          <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
+            <p className="font-medium text-emerald-700">
+              {result.created} lead(s) importado(s).
+            </p>
             {result.errors.length > 0 && (
               <ul className="mt-1 list-disc pl-4 text-rose-600">
                 {result.errors.map((e, i) => (
@@ -311,14 +323,14 @@ function Modal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+        className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl ring-1 ring-slate-900/5"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+        <h3 className="text-base font-semibold tracking-tight text-slate-900">{title}</h3>
         <div className="mt-4">{children}</div>
       </div>
     </div>
