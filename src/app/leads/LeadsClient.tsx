@@ -81,8 +81,8 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Leads</h1>
-          <p className="mt-1.5 text-sm text-slate-500">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Leads</h1>
+          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
             {filtersActive
               ? `${filteredLeads.length} de ${leads.length} lead(s).`
               : `${leads.length} lead(s) cadastrado(s).`}
@@ -102,7 +102,7 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
         <div className="relative min-w-[220px] flex-1">
           <Search
             size={15}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
           />
           <input
             value={search}
@@ -142,7 +142,7 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
         {filtersActive && (
           <button
             onClick={clearFilters}
-            className="flex items-center gap-1 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
+            className="flex items-center gap-1 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
           >
             <X size={14} /> Limpar
           </button>
@@ -150,8 +150,8 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
       </div>
 
       {selected.size > 0 && (
-        <div className="flex items-center justify-between rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-2.5">
-          <span className="text-sm font-medium text-indigo-700">
+        <div className="flex items-center justify-between rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-2.5 dark:border-indigo-500/20 dark:bg-indigo-500/10">
+          <span className="text-sm font-medium text-indigo-700 dark:text-indigo-400">
             {selected.size} lead(s) selecionado(s)
           </span>
           <button onClick={runBatch} disabled={running} className="btn-primary gap-1.5">
@@ -163,7 +163,7 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
 
       <div className="card overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-100 text-xs font-medium uppercase tracking-wide text-slate-400">
+          <thead className="border-b border-slate-100 text-xs font-medium uppercase tracking-wide text-slate-400 dark:border-slate-800 dark:text-slate-500">
             <tr>
               <th className="px-4 py-3">
                 <input
@@ -173,7 +173,7 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
                     filteredLeads.every((l) => selected.has(l.id))
                   }
                   onChange={toggleAll}
-                  className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-900"
                 />
               </th>
               <th className="px-4 py-3">Nome</th>
@@ -188,10 +188,10 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
               <tr>
                 <td colSpan={6} className="px-4 py-12">
                   <div className="flex flex-col items-center gap-2 text-center">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-slate-300">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-slate-300 dark:bg-slate-800 dark:text-slate-600">
                       <Users size={20} />
                     </span>
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-slate-400 dark:text-slate-500">
                       {leads.length === 0
                         ? "Nenhum lead ainda. Importe um CSV ou adicione manualmente."
                         : "Nenhum lead encontrado com esse filtro."}
@@ -199,7 +199,7 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
                     {filtersActive && leads.length > 0 && (
                       <button
                         onClick={clearFilters}
-                        className="text-sm font-medium text-indigo-600 hover:underline"
+                        className="text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
                       >
                         Limpar filtros
                       </button>
@@ -211,25 +211,25 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
             {filteredLeads.map((lead) => (
               <tr
                 key={lead.id}
-                className="border-b border-slate-50 transition-colors last:border-0 hover:bg-slate-50"
+                className="border-b border-slate-50 transition-colors last:border-0 hover:bg-slate-50 dark:border-slate-800/60 dark:hover:bg-slate-800/50"
               >
                 <td className="px-4 py-3">
                   <input
                     type="checkbox"
                     checked={selected.has(lead.id)}
                     onChange={() => toggle(lead.id)}
-                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-900"
                   />
                 </td>
                 <td className="px-4 py-3">
                   <Link
                     href={`/leads/${lead.id}`}
-                    className="font-medium text-slate-900 hover:text-indigo-600 hover:underline"
+                    className="font-medium text-slate-900 hover:text-indigo-600 hover:underline dark:text-white dark:hover:text-indigo-400"
                   >
                     {lead.name}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-slate-500">
+                <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
                   {lead.whatsapp || lead.phone || lead.instagram || "—"}
                 </td>
                 <td className="px-4 py-3">
@@ -238,7 +238,7 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
                 <td className="px-4 py-3">
                   <StatusBadge status={lead.status} />
                 </td>
-                <td className="px-4 py-3 text-slate-500">{lead.source || "—"}</td>
+                <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{lead.source || "—"}</td>
               </tr>
             ))}
           </tbody>
@@ -337,7 +337,7 @@ function AddLeadModal({ onClose, onDone }: { onClose: () => void; onDone: () => 
             <option value="MODO_2">Modo 2 · WhatsApp/Instagram + Ligação</option>
           </select>
         </Field>
-        {error && <p className="text-sm text-rose-600">{error}</p>}
+        {error && <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="btn-secondary">
             Cancelar
@@ -373,8 +373,11 @@ function ImportCsvModal({ onClose, onDone }: { onClose: () => void; onDone: () =
   return (
     <Modal onClose={onClose} title="Importar leads via CSV">
       <form onSubmit={submit} className="space-y-3">
-        <p className="text-xs text-slate-500">
-          Cole abaixo, com cabeçalho. Colunas: <code>name, whatsapp, phone, instagram, source, mode</code>{" "}
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Cole abaixo, com cabeçalho. Colunas:{" "}
+          <code className="rounded bg-slate-100 px-1 py-0.5 dark:bg-slate-800">
+            name, whatsapp, phone, instagram, source, mode
+          </code>{" "}
           (mode: MODO_1 ou MODO_2).
         </p>
         <textarea
@@ -384,12 +387,12 @@ function ImportCsvModal({ onClose, onDone }: { onClose: () => void; onDone: () =
           className="input font-mono text-xs"
         />
         {result && (
-          <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
-            <p className="font-medium text-emerald-700">
+          <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+            <p className="font-medium text-emerald-700 dark:text-emerald-400">
               {result.created} lead(s) importado(s).
             </p>
             {result.errors.length > 0 && (
-              <ul className="mt-1 list-disc pl-4 text-rose-600">
+              <ul className="mt-1 list-disc pl-4 text-rose-600 dark:text-rose-400">
                 {result.errors.map((e, i) => (
                   <li key={i}>{e}</li>
                 ))}
@@ -425,10 +428,10 @@ function Modal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl ring-1 ring-slate-900/5"
+        className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl ring-1 ring-slate-900/5 dark:bg-slate-800 dark:ring-white/10"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-base font-semibold tracking-tight text-slate-900">{title}</h3>
+        <h3 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">{title}</h3>
         <div className="mt-4">{children}</div>
       </div>
     </div>
@@ -438,7 +441,7 @@ function Modal({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-medium text-slate-600">{label}</span>
+      <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">{label}</span>
       {children}
     </label>
   );
