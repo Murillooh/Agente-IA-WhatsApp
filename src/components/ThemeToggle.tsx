@@ -3,42 +3,47 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
-// Cor das bolinhas = a cor de fundo do tema pra onde tá indo (mesmos tons
-// de --background em globals.css) — a tela "enche" até ficar tudo
-// preto (dark) ou tudo claro (light), não uma cor de marca por cima.
-const FILL_COLOR = {
-  dark: [11, 18, 32], // #0b1220
-  light: [248, 250, 252], // #f8fafc
-};
+const CELL = 190; // px por célula da grade — controla quantas bolinhas nascem
+const DROP_DURATION = 1300; // ms, animação de cada bolinha individual
+const SPEED = 1.6; // ms de atraso por pixel de distância até o centro (onda)
+const STEPS = 22; // nº de keyframes "assados" — resolução da onda
 
-const CELL = 145; // px por célula da grade — controla quantas bolinhas nascem
-const DROP_DURATION = 1000; // ms, animação de cada bolinha individual
-const SPEED = 1; // ms de atraso por pixel de distância até o centro (onda)
-const HOLD_BEFORE_REMOVE = 150; // ms segurando a tela já coberta antes de tirar a camada
+function easeOutCubic(p: number) {
+  return 1 - Math.pow(1 - p, 3);
+}
+
+/** Um círculo cheio como subpath SVG (duas semicircunferências). */
+function circlePath(cx: number, cy: number, r: number) {
+  const radius = Math.max(r, 0.01); // nunca exatamente 0 — mantém a estrutura do path igual em todo keyframe
+  return `M${cx + radius} ${cy} a${radius} ${radius} 0 1 0 ${-2 * radius} 0 a${radius} ${radius} 0 1 0 ${2 * radius} 0 Z `;
+}
 
 /**
- * Enche a tela toda de bolinhas na cor do tema de destino, nascendo do
- * centro da tela e se espalhando em onda (mais longe do centro = aparece
- * mais tarde) até cobrir tudo — por cima do tema ATUAL, que ainda não
- * mudou. Só quando a última bolinha termina de crescer é que `onFilled`
- * é chamado pra trocar o tema de verdade (escondido atrás da camada, que
- * já é exatamente essa cor) — daí a camada some sem se notar.
+ * Troca de tema revelada por bolinhas nascendo do centro da tela pra
+ * fora, em onda: cada bolinha é um "furo" que deixa ver o
+ * ::view-transition-new(root) (a foto real da página já no tema novo,
+ * tirada pela View Transitions API) por cima do tema atual — não é uma
+ * cor sólida por cima, é o conteúdo de verdade aparecendo.
+ *
+ * Como CSS clip-path só aceita UMA forma por valor, a união de várias
+ * bolinhas é feita com um único `path()` (SVG path com várias
+ * subcircunferências, fill-rule nonzero = união). Pra dar o efeito de
+ * onda com atraso por bolinha dentro de uma única animação, os
+ * keyframes são pré-calculados: cada um é uma "foto" do path inteiro
+ * num instante, com o raio de cada bolinha já avançado conforme seu
+ * próprio atraso.
  */
-function spawnDrops(goingDark: boolean, onFilled: () => void) {
-  const overlay = document.createElement("div");
-  overlay.style.cssText =
-    "position:fixed;inset:0;z-index:9999;pointer-events:none;overflow:hidden;";
-  document.body.appendChild(overlay);
+function revealWithDrops(onComplete?: () => void) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const originX = vw / 2;
+  const originY = vh / 2;
 
-  const originX = window.innerWidth / 2;
-  const originY = window.innerHeight / 2;
-  const [r, g, b] = FILL_COLOR[goingDark ? "dark" : "light"];
+  const cols = Math.ceil(vw / CELL) + 1;
+  const rows = Math.ceil(vh / CELL) + 1;
+  const maxRadius = CELL * 1.1; // maior que a célula: garante sobreposição, sem buraco
 
-  const cols = Math.ceil(window.innerWidth / CELL) + 1;
-  const rows = Math.ceil(window.innerHeight / CELL) + 1;
-  const diameter = CELL * 1.9; // maior que a célula: garante sobreposição, sem buraco
-
-  const fragment = document.createDocumentFragment();
+  const drops: { x: number; y: number; delay: number }[] = [];
   let maxDelay = 0;
 
   for (let row = 0; row < rows; row++) {
@@ -49,48 +54,31 @@ function spawnDrops(goingDark: boolean, onFilled: () => void) {
       const y = row * CELL + CELL / 2 + jitterY;
       const delay = Math.hypot(x - originX, y - originY) * SPEED;
       maxDelay = Math.max(maxDelay, delay);
-
-      // opacidade final varia um pouco por bolinha — dá profundidade
-      // (efeito translúcido) sem deixar buraco quando sobrepõem.
-      const peakOpacity = 0.85 + Math.random() * 0.13;
-
-      const drop = document.createElement("div");
-      // will-change avisa o navegador com antecedência pra já promover a
-      // bolinha a uma layer própria, em vez de fazer isso no meio da
-      // animação (uma das causas da travadinha no final).
-      drop.style.cssText = `position:absolute;left:${x - diameter / 2}px;top:${
-        y - diameter / 2
-      }px;width:${diameter}px;height:${diameter}px;border-radius:9999px;background:rgb(${r} ${g} ${b});transform:scale(0);opacity:0;will-change:transform,opacity;contain:strict;`;
-      fragment.appendChild(drop);
-
-      drop.animate(
-        [
-          { transform: "scale(0)", opacity: 0 },
-          { transform: "scale(1.08)", opacity: peakOpacity, offset: 0.65 },
-          { transform: "scale(1)", opacity: peakOpacity, offset: 1 },
-        ],
-        { duration: DROP_DURATION, delay, easing: "ease-out", fill: "forwards" }
-      );
+      drops.push({ x, y, delay });
     }
   }
 
-  overlay.appendChild(fragment);
+  const totalDuration = maxDelay + DROP_DURATION;
+  const keyframes: Keyframe[] = [];
 
-  window.setTimeout(() => {
-    // Trocar o tema de verdade recalcula o CSS de boa parte da página de
-    // uma vez só (todo elemento com classe dark:...) — se isso e a
-    // remoção de ~100 bolinhas acontecerem no mesmo instante, o navegador
-    // acumula tudo num frame só e trava visivelmente. Por isso: troca o
-    // tema agora (escondido atrás da camada, que já é essa cor exata),
-    // deixa o navegador pintar esse resultado em frames próprios
-    // (2x requestAnimationFrame), e SÓ DEPOIS remove as bolinhas.
-    onFilled();
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        window.setTimeout(() => overlay.remove(), HOLD_BEFORE_REMOVE);
-      });
-    });
-  }, maxDelay + DROP_DURATION);
+  for (let step = 0; step <= STEPS; step++) {
+    const t = (step / STEPS) * totalDuration;
+    let d = "";
+    for (const { x, y, delay } of drops) {
+      const progress = Math.min(1, Math.max(0, (t - delay) / DROP_DURATION));
+      d += circlePath(x, y, easeOutCubic(progress) * maxRadius);
+    }
+    keyframes.push({ clipPath: `path(nonzero, "${d.trim()}")`, offset: step / STEPS });
+  }
+
+  const animation = document.documentElement.animate(keyframes, {
+    duration: totalDuration,
+    easing: "linear", // o "ease" já tá embutido no raio de cada keyframe
+    pseudoElement: "::view-transition-new(root)",
+    fill: "forwards",
+  });
+
+  if (onComplete) animation.onfinish = onComplete;
 }
 
 export function ThemeToggle() {
@@ -116,18 +104,18 @@ export function ThemeToggle() {
 
   function toggle() {
     const next = !document.documentElement.classList.contains("dark");
-    setIsDark(next); // feedback imediato no ícone do botão
+    setIsDark(next);
 
+    const startViewTransition = document.startViewTransition?.bind(document);
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducedMotion) {
+
+    if (!startViewTransition || reducedMotion) {
       applyRealTheme(next);
       return;
     }
 
-    // A tela só troca de verdade quando as bolinhas terminarem de cobrir
-    // tudo — enquanto isso o resto da página continua no tema atual por
-    // baixo, é isso que dá a sensação de "estar enchendo".
-    spawnDrops(next, () => applyRealTheme(next));
+    const transition = startViewTransition(() => applyRealTheme(next));
+    transition.ready.then(() => revealWithDrops());
   }
 
   return (

@@ -34,6 +34,20 @@ body {
     Arial, sans-serif;
 }
 
+/*
+ * Troca de tema: View Transitions API tira uma "foto" do antes e do
+ * depois e a gente revela o depois por baixo através de bolinhas que
+ * crescem (clip-path animado em ThemeToggle.tsx) — assim o que aparece
+ * dentro de cada bolinha é o conteúdo real da página já no tema novo,
+ * não uma cor sólida por cima. Sem isso o navegador faz um cross-fade
+ * padrão e os dois efeitos brigam.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 .card {
   border-radius: 0.875rem;
   border: 1px solid #e2e8f0;
