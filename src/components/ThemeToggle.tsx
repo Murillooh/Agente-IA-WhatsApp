@@ -12,16 +12,19 @@ const FILL_COLOR = {
 };
 
 const CELL = 110; // px por célula da grade — controla quantas bolinhas nascem
-const DROP_DURATION = 700; // ms, animação de cada bolinha individual
-const SPEED = 0.5; // ms de atraso por pixel de distância até o centro (onda)
+const DROP_DURATION = 1000; // ms, animação de cada bolinha individual
+const SPEED = 1; // ms de atraso por pixel de distância até o centro (onda)
+const HOLD_BEFORE_REMOVE = 150; // ms segurando a tela já coberta antes de tirar a camada
 
 /**
  * Enche a tela toda de bolinhas na cor do tema de destino, nascendo do
  * centro da tela e se espalhando em onda (mais longe do centro = aparece
- * mais tarde) até cobrir tudo. Puro DOM/WAAPI — efeito visual de curta
- * duração que se remove sozinho no final.
+ * mais tarde) até cobrir tudo — por cima do tema ATUAL, que ainda não
+ * mudou. Só quando a última bolinha termina de crescer é que `onFilled`
+ * é chamado pra trocar o tema de verdade (escondido atrás da camada, que
+ * já é exatamente essa cor) — daí a camada some sem se notar.
  */
-function spawnDrops(goingDark: boolean) {
+function spawnDrops(goingDark: boolean, onFilled: () => void) {
   const overlay = document.createElement("div");
   overlay.style.cssText =
     "position:fixed;inset:0;z-index:9999;pointer-events:none;overflow:hidden;";
@@ -69,10 +72,11 @@ function spawnDrops(goingDark: boolean) {
   }
 
   overlay.appendChild(fragment);
-  // A essa altura o tema real já trocou (aplicado no clique) e a cor das
-  // bolinhas é a mesma do fundo novo, então tirar a camada por cima não
-  // se nota — a tela já "é" essa cor por baixo.
-  window.setTimeout(() => overlay.remove(), maxDelay + DROP_DURATION + 100);
+
+  window.setTimeout(() => {
+    onFilled(); // troca o tema de verdade agora, escondido atrás da camada 100% coberta
+    window.setTimeout(() => overlay.remove(), HOLD_BEFORE_REMOVE);
+  }, maxDelay + DROP_DURATION);
 }
 
 export function ThemeToggle() {
@@ -87,21 +91,29 @@ export function ThemeToggle() {
     setIsDark(document.documentElement.classList.contains("dark"));
   }, []);
 
-  function toggle() {
-    const next = !document.documentElement.classList.contains("dark");
-
+  function applyRealTheme(next: boolean) {
     document.documentElement.classList.toggle("dark", next);
     try {
       localStorage.setItem("theme", next ? "dark" : "light");
     } catch {
       // localStorage indisponível (modo privado etc.) — só não persiste.
     }
-    setIsDark(next);
+  }
+
+  function toggle() {
+    const next = !document.documentElement.classList.contains("dark");
+    setIsDark(next); // feedback imediato no ícone do botão
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!reducedMotion) {
-      spawnDrops(next);
+    if (reducedMotion) {
+      applyRealTheme(next);
+      return;
     }
+
+    // A tela só troca de verdade quando as bolinhas terminarem de cobrir
+    // tudo — enquanto isso o resto da página continua no tema atual por
+    // baixo, é isso que dá a sensação de "estar enchendo".
+    spawnDrops(next, () => applyRealTheme(next));
   }
 
   return (
