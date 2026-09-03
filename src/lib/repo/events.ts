@@ -31,6 +31,20 @@ export function listEventsForLead(leadId: string): ConversationEvent[] {
   return rows.map(rowToEvent);
 }
 
+export function listRecentEvents(
+  limit = 8
+): (ConversationEvent & { leadName: string })[] {
+  const rows = db
+    .prepare(
+      `SELECT e.*, l.name as lead_name FROM conversation_events e
+       JOIN leads l ON l.id = e.lead_id
+       ORDER BY e.created_at DESC
+       LIMIT ?`
+    )
+    .all(limit) as (EventRow & { lead_name: string })[];
+  return rows.map((r) => ({ ...rowToEvent(r), leadName: r.lead_name }));
+}
+
 export function addEvent(input: {
   leadId: string;
   channel: Channel;
