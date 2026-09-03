@@ -3,30 +3,33 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
-// Cores translúcidas dos "pingos" — mesma paleta indigo/violeta da marca
-// (logo da sidebar), só que com alpha, pra dar o efeito de vidro.
-const DROP_COLORS = [
-  "rgba(99, 102, 241, 0.55)", // indigo-500
-  "rgba(139, 92, 246, 0.5)", // violet-500
-  "rgba(129, 140, 248, 0.45)", // indigo-400
-  "rgba(196, 181, 253, 0.4)", // violet-300
-];
+// Cor das bolinhas = a cor de fundo do tema pra onde tá indo (mesmos tons
+// de --background em globals.css) — a tela "enche" até ficar tudo
+// preto (dark) ou tudo claro (light), não uma cor de marca por cima.
+const FILL_COLOR = {
+  dark: [11, 18, 32], // #0b1220
+  light: [248, 250, 252], // #f8fafc
+};
 
-const CELL = 110; // px por célula da grade — controla quantos pingos nascem
-const DROP_DURATION = 900; // ms, animação de cada pingo individual
-const SPEED = 0.6; // ms de atraso por pixel de distância até o clique (onda)
+const CELL = 110; // px por célula da grade — controla quantas bolinhas nascem
+const DROP_DURATION = 700; // ms, animação de cada bolinha individual
+const SPEED = 0.5; // ms de atraso por pixel de distância até o centro (onda)
 
 /**
- * Espalha vários "pingos" translúcidos a partir de (originX, originY) até
- * cobrirem a tela inteira, em onda (mais longe do clique = aparece mais
- * tarde). Puro DOM/WAAPI — não usa React pra isso, é só um efeito visual
- * de curta duração que se remove sozinho no final.
+ * Enche a tela toda de bolinhas na cor do tema de destino, nascendo do
+ * centro da tela e se espalhando em onda (mais longe do centro = aparece
+ * mais tarde) até cobrir tudo. Puro DOM/WAAPI — efeito visual de curta
+ * duração que se remove sozinho no final.
  */
-function spawnDrops(originX: number, originY: number) {
+function spawnDrops(goingDark: boolean) {
   const overlay = document.createElement("div");
   overlay.style.cssText =
     "position:fixed;inset:0;z-index:9999;pointer-events:none;overflow:hidden;";
   document.body.appendChild(overlay);
+
+  const originX = window.innerWidth / 2;
+  const originY = window.innerHeight / 2;
+  const [r, g, b] = FILL_COLOR[goingDark ? "dark" : "light"];
 
   const cols = Math.ceil(window.innerWidth / CELL) + 1;
   const rows = Math.ceil(window.innerHeight / CELL) + 1;
@@ -44,19 +47,21 @@ function spawnDrops(originX: number, originY: number) {
       const delay = Math.hypot(x - originX, y - originY) * SPEED;
       maxDelay = Math.max(maxDelay, delay);
 
+      // opacidade final varia um pouco por bolinha — dá profundidade
+      // (efeito translúcido) sem deixar buraco quando sobrepõem.
+      const peakOpacity = 0.85 + Math.random() * 0.13;
+
       const drop = document.createElement("div");
-      const color = DROP_COLORS[Math.floor(Math.random() * DROP_COLORS.length)];
       drop.style.cssText = `position:absolute;left:${x - diameter / 2}px;top:${
         y - diameter / 2
-      }px;width:${diameter}px;height:${diameter}px;border-radius:9999px;background:${color};backdrop-filter:blur(2px);transform:scale(0);opacity:0;`;
+      }px;width:${diameter}px;height:${diameter}px;border-radius:9999px;background:rgb(${r} ${g} ${b});transform:scale(0);opacity:0;`;
       fragment.appendChild(drop);
 
       drop.animate(
         [
           { transform: "scale(0)", opacity: 0 },
-          { transform: "scale(1)", opacity: 0.85, offset: 0.35 },
-          { transform: "scale(1.05)", opacity: 0.85, offset: 0.7 },
-          { transform: "scale(1.05)", opacity: 0, offset: 1 },
+          { transform: "scale(1.08)", opacity: peakOpacity, offset: 0.65 },
+          { transform: "scale(1)", opacity: peakOpacity, offset: 1 },
         ],
         { duration: DROP_DURATION, delay, easing: "ease-out", fill: "forwards" }
       );
@@ -64,6 +69,9 @@ function spawnDrops(originX: number, originY: number) {
   }
 
   overlay.appendChild(fragment);
+  // A essa altura o tema real já trocou (aplicado no clique) e a cor das
+  // bolinhas é a mesma do fundo novo, então tirar a camada por cima não
+  // se nota — a tela já "é" essa cor por baixo.
   window.setTimeout(() => overlay.remove(), maxDelay + DROP_DURATION + 100);
 }
 
@@ -79,7 +87,7 @@ export function ThemeToggle() {
     setIsDark(document.documentElement.classList.contains("dark"));
   }, []);
 
-  function toggle(e: React.MouseEvent<HTMLButtonElement>) {
+  function toggle() {
     const next = !document.documentElement.classList.contains("dark");
 
     document.documentElement.classList.toggle("dark", next);
@@ -92,7 +100,7 @@ export function ThemeToggle() {
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!reducedMotion) {
-      spawnDrops(e.clientX, e.clientY);
+      spawnDrops(next);
     }
   }
 
