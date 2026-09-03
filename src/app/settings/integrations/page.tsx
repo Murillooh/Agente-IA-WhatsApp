@@ -33,11 +33,14 @@ export default function IntegrationsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Integrações</h1>
-        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-500">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+          Integrações
+        </h1>
+        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">
           Hoje o sistema roda em modo simulado (sem chamar nenhuma API externa). Quando
           você pesquisar e escolher os provedores, configure as variáveis de ambiente
-          abaixo (arquivo <code className="rounded bg-slate-100 px-1 py-0.5">.env</code>) e
+          abaixo (arquivo{" "}
+          <code className="rounded bg-slate-100 px-1 py-0.5 dark:bg-slate-800">.env</code>) e
           implemente a chamada real no arquivo indicado — o restante do app (leads,
           timeline, reuniões) já funciona sem mudar mais nada.
         </p>
@@ -49,29 +52,33 @@ export default function IntegrationsPage() {
           return (
             <div key={i.key} className="card p-5">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold tracking-tight text-slate-900">{i.name}</p>
+                <p className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
+                  {i.name}
+                </p>
                 {connected ? (
-                  <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/30">
                     <CheckCircle2 size={13} /> Conectado
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-md bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-500 ring-1 ring-inset ring-slate-600/15">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-500 ring-1 ring-inset ring-slate-600/15 dark:bg-slate-500/10 dark:text-slate-400 dark:ring-slate-400/20">
                     <CircleDashed size={13} /> Não conectado
                   </span>
                 )}
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-slate-500">{i.description}</p>
+              <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                {i.description}
+              </p>
               <div className="mt-3 space-y-1">
                 {i.envVars.map((v) => (
                   <code
                     key={v}
-                    className="block rounded-md bg-slate-50 px-2 py-1 text-[11px] text-slate-500"
+                    className="block rounded-md bg-slate-50 px-2 py-1 text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400"
                   >
                     {v}
                   </code>
                 ))}
               </div>
-              <p className="mt-3 text-[11px] text-slate-400">
+              <p className="mt-3 text-[11px] text-slate-400 dark:text-slate-500">
                 Provedores comuns: {i.suggestions}
               </p>
             </div>

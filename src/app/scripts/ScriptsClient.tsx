@@ -14,10 +14,10 @@ export function ScriptsClient({ scripts }: { scripts: SalesScript[] }) {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
             Scripts de vendas
           </h1>
-          <p className="mt-1.5 text-sm text-slate-500">
+          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
             Um script ativo por combinação de Modo + Canal é usado automaticamente ao
             rodar a automação de um lead.
           </p>
@@ -32,7 +32,7 @@ export function ScriptsClient({ scripts }: { scripts: SalesScript[] }) {
           <ScriptCard key={s.id} script={s} onChange={() => router.refresh()} />
         ))}
         {scripts.length === 0 && (
-          <p className="text-sm text-slate-400">Nenhum script ainda.</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500">Nenhum script ainda.</p>
         )}
       </div>
 
@@ -68,14 +68,16 @@ function ScriptCard({ script, onChange }: { script: SalesScript; onChange: () =>
     <div className="card p-5">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-semibold tracking-tight text-slate-900">{script.name}</p>
-          <p className="mt-0.5 text-xs text-slate-400">
+          <p className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
+            {script.name}
+          </p>
+          <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
             {MODE_LABELS[script.mode]} · {CHANNEL_LABELS[script.channel]}
           </p>
         </div>
         <button
           onClick={remove}
-          className="text-slate-300 transition-colors hover:text-rose-600"
+          className="text-slate-300 transition-colors hover:text-rose-600 dark:text-slate-600 dark:hover:text-rose-400"
         >
           <Trash2 size={15} />
         </button>
@@ -86,9 +88,12 @@ function ScriptCard({ script, onChange }: { script: SalesScript; onChange: () =>
         rows={5}
         className="input mt-3 text-sm leading-relaxed"
       />
-      <p className="mt-1 text-[11px] text-slate-400">
-        Use <code className="rounded bg-slate-50 px-1 py-0.5">{"{{nome}}"}</code> para inserir o
-        nome do lead.
+      <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+        Use{" "}
+        <code className="rounded bg-slate-50 px-1 py-0.5 dark:bg-slate-800">
+          {"{{nome}}"}
+        </code>{" "}
+        para inserir o nome do lead.
       </p>
       {dirty && (
         <button onClick={save} disabled={saving} className="btn-primary mt-2 gap-1.5">
@@ -123,11 +128,15 @@ function AddScriptModal({ onClose, onDone }: { onClose: () => void; onDone: () =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl ring-1 ring-slate-900/5">
-        <h3 className="text-base font-semibold tracking-tight text-slate-900">Novo script</h3>
+      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl ring-1 ring-slate-900/5 dark:bg-slate-800 dark:ring-white/10">
+        <h3 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">
+          Novo script
+        </h3>
         <form onSubmit={submit} className="mt-4 space-y-3">
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">Nome</span>
+            <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Nome
+            </span>
             <input
               required
               value={form.name}
@@ -137,7 +146,9 @@ function AddScriptModal({ onClose, onDone }: { onClose: () => void; onDone: () =
           </label>
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="mb-1 block text-xs font-medium text-slate-600">Modo</span>
+              <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+                Modo
+              </span>
               <select
                 value={form.mode}
                 onChange={(e) => setForm({ ...form, mode: e.target.value as Mode })}
@@ -148,7 +159,9 @@ function AddScriptModal({ onClose, onDone }: { onClose: () => void; onDone: () =
               </select>
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-medium text-slate-600">Canal</span>
+              <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+                Canal
+              </span>
               <select
                 value={form.channel}
                 onChange={(e) => setForm({ ...form, channel: e.target.value as Channel })}
@@ -161,7 +174,9 @@ function AddScriptModal({ onClose, onDone }: { onClose: () => void; onDone: () =
             </label>
           </div>
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">Conteúdo</span>
+            <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Conteúdo
+            </span>
             <textarea
               required
               value={form.content}
