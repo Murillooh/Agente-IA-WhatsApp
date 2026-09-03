@@ -11,13 +11,13 @@ const CHANNEL_DOT: Record<Channel, string> = {
   WHATSAPP: "bg-green-500",
   INSTAGRAM: "bg-pink-500",
   LIGACAO: "bg-indigo-500",
-  SISTEMA: "bg-slate-300",
+  SISTEMA: "bg-slate-300 dark:bg-slate-600",
 };
 
 const MEETING_STATUS_STYLES: Record<Meeting["status"], string> = {
-  AGENDADA: "bg-violet-50 text-violet-700 ring-violet-600/20",
-  REALIZADA: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  CANCELADA: "bg-rose-50 text-rose-700 ring-rose-600/20",
+  AGENDADA: "bg-violet-50 text-violet-700 ring-violet-600/20 dark:bg-violet-500/10 dark:text-violet-400 dark:ring-violet-500/30",
+  REALIZADA: "bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/30",
+  CANCELADA: "bg-rose-50 text-rose-700 ring-rose-600/20 dark:bg-rose-500/10 dark:text-rose-400 dark:ring-rose-500/30",
 };
 
 export function LeadDetailClient({
@@ -81,7 +81,9 @@ export function LeadDetailClient({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">{lead.name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            {lead.name}
+          </h1>
           <div className="mt-2.5 flex flex-wrap items-center gap-2">
             <ModeBadge mode={lead.mode} />
             <StatusBadge status={lead.status} />
@@ -101,12 +103,14 @@ export function LeadDetailClient({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <div className="card p-6">
-            <h2 className="text-sm font-semibold tracking-tight text-slate-900">
+            <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
               Esboço da conversa (timeline)
             </h2>
             <ul className="mt-4 space-y-4">
               {events.length === 0 && (
-                <li className="text-sm text-slate-400">Nenhum evento ainda.</li>
+                <li className="text-sm text-slate-400 dark:text-slate-500">
+                  Nenhum evento ainda.
+                </li>
               )}
               {events.map((ev) => (
                 <li key={ev.id} className="flex gap-3">
@@ -116,7 +120,7 @@ export function LeadDetailClient({
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <ChannelBadge channel={ev.channel} />
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-[11px] text-slate-400 dark:text-slate-500">
                         {ev.direction === "SAIDA" ? "enviado" : "recebido"} ·{" "}
                         {new Date(ev.createdAt).toLocaleString("pt-BR", {
                           dateStyle: "short",
@@ -124,13 +128,18 @@ export function LeadDetailClient({
                         })}
                       </span>
                     </div>
-                    <p className="mt-1 text-sm leading-relaxed text-slate-700">{ev.content}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                      {ev.content}
+                    </p>
                   </div>
                 </li>
               ))}
             </ul>
 
-            <form onSubmit={addNote} className="mt-5 flex gap-2 border-t border-slate-100 pt-4">
+            <form
+              onSubmit={addNote}
+              className="mt-5 flex gap-2 border-t border-slate-100 pt-4 dark:border-slate-800"
+            >
               <input
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -146,7 +155,9 @@ export function LeadDetailClient({
 
         <div className="space-y-6">
           <div className="card p-6">
-            <h2 className="text-sm font-semibold tracking-tight text-slate-900">Contato</h2>
+            <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
+              Contato
+            </h2>
             <dl className="mt-3 space-y-2 text-sm">
               <Row label="WhatsApp" value={lead.whatsapp} />
               <Row label="Telefone" value={lead.phone} />
@@ -156,7 +167,9 @@ export function LeadDetailClient({
           </div>
 
           <div className="card p-6">
-            <h2 className="text-sm font-semibold tracking-tight text-slate-900">Status</h2>
+            <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
+              Status
+            </h2>
             <select
               value={lead.status}
               onChange={(e) => changeStatus(e.target.value as LeadStatus)}
@@ -173,31 +186,35 @@ export function LeadDetailClient({
           {meeting && (
             <div className="card p-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold tracking-tight text-slate-900">Reunião</h2>
+                <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
+                  Reunião
+                </h2>
                 <span
                   className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${MEETING_STATUS_STYLES[meeting.status]}`}
                 >
                   {meeting.status}
                 </span>
               </div>
-              <p className="mt-3 text-sm font-medium text-slate-700">
+              <p className="mt-3 text-sm font-medium text-slate-700 dark:text-slate-300">
                 {new Date(meeting.scheduledAt).toLocaleString("pt-BR", {
                   dateStyle: "full",
                   timeStyle: "short",
                 })}
               </p>
-              {meeting.notes && <p className="mt-1 text-xs text-slate-500">{meeting.notes}</p>}
+              {meeting.notes && (
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{meeting.notes}</p>
+              )}
               {meeting.status === "AGENDADA" && (
                 <div className="mt-3 flex gap-2">
                   <button
                     onClick={() => updateMeetingStatus("REALIZADA")}
-                    className="flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-emerald-700 active:scale-[0.98]"
+                    className="flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-emerald-700 active:scale-[0.98] dark:bg-emerald-600 dark:hover:bg-emerald-500"
                   >
                     <CheckCircle2 size={13} /> Realizada
                   </button>
                   <button
                     onClick={() => updateMeetingStatus("CANCELADA")}
-                    className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 active:scale-[0.98]"
+                    className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 active:scale-[0.98] dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
                   >
                     <XCircle size={13} /> Cancelar
                   </button>
@@ -222,8 +239,8 @@ export function LeadDetailClient({
 function Row({ label, value }: { label: string; value: string | null }) {
   return (
     <div className="flex justify-between gap-3">
-      <dt className="text-slate-400">{label}</dt>
-      <dd className="text-right text-slate-700">{value || "—"}</dd>
+      <dt className="text-slate-400 dark:text-slate-500">{label}</dt>
+      <dd className="text-right text-slate-700 dark:text-slate-300">{value || "—"}</dd>
     </div>
   );
 }
@@ -264,15 +281,17 @@ function ScheduleModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl ring-1 ring-slate-900/5"
+        className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl ring-1 ring-slate-900/5 dark:bg-slate-800 dark:ring-white/10"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-base font-semibold tracking-tight text-slate-900">
+        <h3 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">
           Agendar reunião
         </h3>
         <form onSubmit={submit} className="mt-4 space-y-3">
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">Data e hora</span>
+            <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Data e hora
+            </span>
             <input
               required
               type="datetime-local"
@@ -282,7 +301,9 @@ function ScheduleModal({
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">Notas</span>
+            <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Notas
+            </span>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
