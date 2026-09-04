@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
@@ -9,6 +9,7 @@ import {
   FileText,
   Plug,
   Target,
+  LogOut,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -22,6 +23,13 @@ const links = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-[#0b1220]">
@@ -63,6 +71,15 @@ export function Sidebar() {
         })}
       </nav>
 
+      <div className="border-t border-slate-200 p-3 dark:border-slate-800">
+        <button
+          onClick={logout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-700 dark:text-slate-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-400"
+        >
+          <LogOut size={17} className="text-slate-400 dark:text-slate-500" />
+          Sair
+        </button>
+      </div>
       <div className="border-t border-slate-200 p-4 text-xs text-slate-400 dark:border-slate-800 dark:text-slate-500">
         Objetivo geral:{" "}
         <span className="font-medium text-slate-600 dark:text-slate-300">fechar reuniões</span>
