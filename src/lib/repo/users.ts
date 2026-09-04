@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { db } from "@/lib/db";
 
 export interface User {
@@ -33,4 +34,20 @@ export function findUserByUsernameWithHash(
 export function getUserById(id: string): User | null {
   const row = db.prepare("SELECT * FROM users WHERE id = ?").get(id) as UserRow | undefined;
   return row ? rowToUser(row) : null;
+}
+
+export function createUser(input: { username: string; name: string; passwordHash: string }): User {
+  const id = randomUUID();
+  const now = new Date().toISOString();
+  db.prepare(
+    `INSERT INTO users (id, username, name, password_hash, created_at)
+     VALUES (@id, @username, @name, @password_hash, @now)`
+  ).run({
+    id,
+    username: input.username,
+    name: input.name,
+    password_hash: input.passwordHash,
+    now,
+  });
+  return { id, username: input.username, name: input.name, createdAt: now };
 }

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Target } from "lucide-react";
 import { AuthInfoPanel } from "@/components/AuthInfoPanel";
-import { LoginForm } from "./LoginForm";
+import { SignupForm } from "./SignupForm";
 
 export const metadata: Metadata = {
-  title: "Entrar — MeetCloser",
+  title: "Criar conta — MeetCloser",
 };
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       <div className="flex items-center justify-center px-6 py-12 sm:px-10">
@@ -22,13 +22,13 @@ export default function LoginPage() {
           </div>
 
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Entrar
+            Criar conta
           </h1>
           <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-            Acesse sua conta pra continuar a prospecção.
+            Cadastre-se pra começar a fechar reuniões.
           </p>
 
-          <LoginForm />
+          <SignupForm />
         </div>
       </div>
 

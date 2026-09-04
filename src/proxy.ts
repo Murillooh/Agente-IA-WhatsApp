@@ -9,9 +9,11 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const session = decodeSession(request.cookies.get(SESSION_COOKIE)?.value);
 
-  // Login (página e a própria rota de POST) sempre acessível.
-  if (pathname === "/login" || pathname === "/api/auth/login") {
-    if (pathname === "/login" && session) {
+  // Login/cadastro (páginas e as próprias rotas de POST) sempre acessíveis.
+  const authPages = ["/login", "/signup"];
+  const authApis = ["/api/auth/login", "/api/auth/signup"];
+  if (authPages.includes(pathname) || authApis.includes(pathname)) {
+    if (authPages.includes(pathname) && session) {
       return NextResponse.redirect(new URL("/", request.url));
     }
     return NextResponse.next();
