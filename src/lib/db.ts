@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import { hashPassword } from "@/lib/auth/password";
 
 // Banco local em arquivo (SQLite). Para produção real, troque por Postgres/Turso
 // e adapte as funções em src/lib/repo/*.ts — a interface (o que cada função
@@ -69,10 +70,19 @@ CREATE TABLE IF NOT EXISTS scripts (
   updated_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  username TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_events_lead ON conversation_events(lead_id);
 `);
 
 seedIfEmpty();
+seedAdminIfEmpty();
 
 function seedIfEmpty() {
   const { count } = db.prepare("SELECT COUNT(*) as count FROM leads").get() as {
@@ -303,4 +313,40 @@ function seedIfEmpty() {
     content: "Lead importado, aguardando início da automação (Modo 2).",
     created_at: iso(-1),
   });
+}
+
+// Cria a primeira conta pra você conseguir entrar no sistema. Depois de
+// logar, é uma boa trocar a senha (hoje não tem tela pra isso — se
+// precisar, dá pra rodar um UPDATE direto no banco com uma nova hash de
+// src/lib/auth/password.ts).
+function seedAdminIfEmpty() {
+  const { count } = db.prepare("SELECT COUNT(*) as count FROM users").get() as {
+    count: number;
+  };
+  if (count > 0) return;
+
+  const username = process.env.ADMIN_USERNAME || "admin";
+  const password = process.env.ADMIN_PASSWORD || "meetcloser123";
+
+  // OR IGNORE: o build do Next roda essa checagem em vários workers ao
+  // mesmo tempo, todos batendo no mesmo arquivo — sem isso, o segundo a
+  // chegar quebra na constraint UNIQUE do username.
+  const info = db
+    .prepare(
+      `INSERT OR IGNORE INTO users (id, username, name, password_hash, created_at)
+       VALUES (@id, @username, @name, @password_hash, @created_at)`
+    )
+    .run({
+      id: crypto.randomUUID(),
+      username,
+      name: "Administrador",
+      password_hash: hashPassword(password),
+      created_at: new Date().toISOString(),
+    });
+
+  if (info.changes > 0) {
+    console.log(
+      `[seed] Conta criada — usuário: "${username}" senha: "${password}" (troque depois de logar).`
+    );
+  }
 }
