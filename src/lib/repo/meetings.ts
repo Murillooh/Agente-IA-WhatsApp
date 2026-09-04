@@ -24,30 +24,42 @@ function rowToMeeting(r: MeetingRow): Meeting {
   };
 }
 
-export function getMeetingForLead(leadId: string): Meeting | null {
+// Reuniões não têm coluna própria de dono — a gente sempre passa pelo
+// lead (JOIN em leads.user_id) pra saber se pertencem ao usuário atual.
+
+export function getMeetingForLead(leadId: string, userId: string): Meeting | null {
   const row = db
-    .prepare("SELECT * FROM meetings WHERE lead_id = ?")
-    .get(leadId) as MeetingRow | undefined;
+    .prepare(
+      `SELECT m.* FROM meetings m
+       JOIN leads l ON l.id = m.lead_id
+       WHERE m.lead_id = ? AND l.user_id = ?`
+    )
+    .get(leadId, userId) as MeetingRow | undefined;
   return row ? rowToMeeting(row) : null;
 }
 
-export function listMeetings(): (Meeting & { leadName: string })[] {
+export function listMeetings(userId: string): (Meeting & { leadName: string })[] {
   const rows = db
     .prepare(
       `SELECT m.*, l.name as lead_name FROM meetings m
        JOIN leads l ON l.id = m.lead_id
+       WHERE l.user_id = ?
        ORDER BY m.scheduled_at ASC`
     )
-    .all() as (MeetingRow & { lead_name: string })[];
+    .all(userId) as (MeetingRow & { lead_name: string })[];
   return rows.map((r) => ({ ...rowToMeeting(r), leadName: r.lead_name }));
 }
 
-export function upsertMeeting(input: {
-  leadId: string;
-  scheduledAt: string;
-  notes?: string | null;
-}): Meeting {
-  const existing = getMeetingForLead(input.leadId);
+export function upsertMeeting(
+  userId: string,
+  input: { leadId: string; scheduledAt: string; notes?: string | null }
+): Meeting | null {
+  const ownsLead = db
+    .prepare("SELECT 1 FROM leads WHERE id = ? AND user_id = ?")
+    .get(input.leadId, userId);
+  if (!ownsLead) return null;
+
+  const existing = getMeetingForLead(input.leadId, userId);
   const now = new Date().toISOString();
   if (existing) {
     db.prepare(
@@ -70,25 +82,29 @@ export function upsertMeeting(input: {
       now,
     });
   }
-  return getMeetingForLead(input.leadId)!;
+  return getMeetingForLead(input.leadId, userId);
 }
 
 export function updateMeetingStatus(
   leadId: string,
+  userId: string,
   status: MeetingStatus
 ): Meeting | null {
   const now = new Date().toISOString();
   db.prepare(
-    "UPDATE meetings SET status = ?, updated_at = ? WHERE lead_id = ?"
-  ).run(status, now, leadId);
-  return getMeetingForLead(leadId);
+    `UPDATE meetings SET status = @status, updated_at = @now
+     WHERE lead_id = @leadId AND lead_id IN (SELECT id FROM leads WHERE user_id = @userId)`
+  ).run({ status, now, leadId, userId });
+  return getMeetingForLead(leadId, userId);
 }
 
-export function countUpcomingMeetings(): number {
+export function countUpcomingMeetings(userId: string): number {
   const row = db
     .prepare(
-      "SELECT COUNT(*) as c FROM meetings WHERE status = 'AGENDADA' AND scheduled_at >= datetime('now')"
+      `SELECT COUNT(*) as c FROM meetings m
+       JOIN leads l ON l.id = m.lead_id
+       WHERE m.status = 'AGENDADA' AND m.scheduled_at >= datetime('now') AND l.user_id = ?`
     )
-    .get() as { c: number };
+    .get(userId) as { c: number };
   return row.c;
 }

@@ -16,8 +16,8 @@ import { makeCall } from "@/lib/integrations/voice";
  * o mesmo endpoint aceita uma lista de ids e roda em paralelo — veja
  * makeCallsBatch em src/lib/integrations/voice.ts.
  */
-export async function runAutomationForLead(leadId: string) {
-  const lead = getLead(leadId);
+export async function runAutomationForLead(leadId: string, userId: string) {
+  const lead = getLead(leadId, userId);
   if (!lead) throw new Error("Lead não encontrado");
 
   const steps: string[] = [];
@@ -82,13 +82,17 @@ export async function runAutomationForLead(leadId: string) {
   }
 
   if (lead.status === "NOVO") {
-    updateLeadStatus(leadId, "CONTATADO");
+    updateLeadStatus(leadId, userId, "CONTATADO");
   }
 
   return { leadId, steps };
 }
 
-export async function runAutomationBatch(leadIds: string[], concurrency = 5) {
+export async function runAutomationBatch(
+  leadIds: string[],
+  userId: string,
+  concurrency = 5
+) {
   const results: { leadId: string; steps: string[]; error?: string }[] = [];
   let index = 0;
 
@@ -96,7 +100,7 @@ export async function runAutomationBatch(leadIds: string[], concurrency = 5) {
     while (index < leadIds.length) {
       const id = leadIds[index++];
       try {
-        const r = await runAutomationForLead(id);
+        const r = await runAutomationForLead(id, userId);
         results.push(r);
       } catch (e) {
         results.push({ leadId: id, steps: [], error: (e as Error).message });

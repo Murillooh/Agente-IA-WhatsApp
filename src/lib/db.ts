@@ -27,8 +27,19 @@ db.pragma("journal_mode = WAL");
 db.pragma("foreign_keys = ON");
 
 db.exec(`
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  username TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+-- Cada lead pertence a um usuário — é o que isola os dados entre contas
+-- (reuniões e timeline seguem o lead, não precisam de user_id próprio).
 CREATE TABLE IF NOT EXISTS leads (
   id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   phone TEXT,
   whatsapp TEXT,
@@ -59,6 +70,8 @@ CREATE TABLE IF NOT EXISTS meetings (
   updated_at TEXT NOT NULL
 );
 
+-- Scripts de vendas continuam compartilhados por toda a equipe (são
+-- modelos/playbook, não dado sensível de cada usuário).
 CREATE TABLE IF NOT EXISTS scripts (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
@@ -70,21 +83,47 @@ CREATE TABLE IF NOT EXISTS scripts (
   updated_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS users (
-  id TEXT PRIMARY KEY,
-  username TEXT NOT NULL UNIQUE,
-  name TEXT NOT NULL,
-  password_hash TEXT NOT NULL,
-  created_at TEXT NOT NULL
-);
-
 CREATE INDEX IF NOT EXISTS idx_events_lead ON conversation_events(lead_id);
 `);
 
-seedIfEmpty();
 seedAdminIfEmpty();
+const legacyOwnerId = resolveLegacyDataOwnerId();
+migrateLeadsUserId(legacyOwnerId);
+// Só depois da migração é que a coluna user_id existe garantidamente em
+// bancos antigos — por isso esse índice não entra no bloco de exec() lá
+// em cima (senão quebra em qualquer banco criado antes dessa mudança).
+db.exec("CREATE INDEX IF NOT EXISTS idx_leads_user ON leads(user_id)");
+seedIfEmpty(legacyOwnerId);
 
-function seedIfEmpty() {
+// Dono dos leads que já existiam antes do conceito de usuário (ou dos
+// leads de exemplo, num banco novo): prioriza a conta pessoal se ela
+// existir nesta máquina, senão cai na primeira conta que houver.
+function resolveLegacyDataOwnerId(): string {
+  const preferred = db
+    .prepare("SELECT id FROM users WHERE username = ?")
+    .get("muurisattos@gmail.com") as { id: string } | undefined;
+  if (preferred) return preferred.id;
+
+  const first = db.prepare("SELECT id FROM users ORDER BY created_at ASC LIMIT 1").get() as
+    | { id: string }
+    | undefined;
+  // seedAdminIfEmpty() já garantiu que existe pelo menos um usuário antes
+  // desta função ser chamada.
+  return first!.id;
+}
+
+// Bancos criados antes do login existir têm a tabela "leads" sem a coluna
+// user_id — SQLite não deixa adicionar coluna NOT NULL numa tabela que já
+// tem linhas, então ela entra opcional e a gente preenche na mão.
+function migrateLeadsUserId(fallbackUserId: string) {
+  const columns = db.prepare("PRAGMA table_info(leads)").all() as { name: string }[];
+  if (columns.some((c) => c.name === "user_id")) return;
+
+  db.exec("ALTER TABLE leads ADD COLUMN user_id TEXT REFERENCES users(id)");
+  db.prepare("UPDATE leads SET user_id = ? WHERE user_id IS NULL").run(fallbackUserId);
+}
+
+function seedIfEmpty(userId: string) {
   const { count } = db.prepare("SELECT COUNT(*) as count FROM leads").get() as {
     count: number;
   };
@@ -95,8 +134,8 @@ function seedIfEmpty() {
     new Date(now.getTime() + offsetHours * 3600 * 1000).toISOString();
 
   const insertLead = db.prepare(
-    `INSERT INTO leads (id, name, phone, whatsapp, instagram, source, mode, status, created_at, updated_at)
-     VALUES (@id, @name, @phone, @whatsapp, @instagram, @source, @mode, @status, @created_at, @updated_at)`
+    `INSERT INTO leads (id, user_id, name, phone, whatsapp, instagram, source, mode, status, created_at, updated_at)
+     VALUES (@id, @user_id, @name, @phone, @whatsapp, @instagram, @source, @mode, @status, @created_at, @updated_at)`
   );
   const insertEvent = db.prepare(
     `INSERT INTO conversation_events (id, lead_id, channel, direction, content, created_at)
@@ -148,6 +187,7 @@ function seedIfEmpty() {
   // Lead 1 - Modo 1, já com reunião agendada
   const lead1 = uid();
   insertLead.run({
+    user_id: userId,
     id: lead1,
     name: "Marina Souza",
     phone: null,
@@ -213,6 +253,7 @@ function seedIfEmpty() {
   // Lead 2 - Modo 2, em andamento (ligação feita, aguardando resposta)
   const lead2 = uid();
   insertLead.run({
+    user_id: userId,
     id: lead2,
     name: "Carlos Pereira",
     phone: "+55 21 97777-0002",
@@ -262,6 +303,7 @@ function seedIfEmpty() {
   // Lead 3 - Modo 1, recém contatado
   const lead3 = uid();
   insertLead.run({
+    user_id: userId,
     id: lead3,
     name: "Fernanda Lima",
     phone: null,
@@ -294,6 +336,7 @@ function seedIfEmpty() {
   // Lead 4 - Novo, sem contato ainda
   const lead4 = uid();
   insertLead.run({
+    user_id: userId,
     id: lead4,
     name: "Rodrigo Alves",
     phone: "+55 41 95555-0004",

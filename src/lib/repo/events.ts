@@ -22,29 +22,39 @@ function rowToEvent(r: EventRow): ConversationEvent {
   };
 }
 
-export function listEventsForLead(leadId: string): ConversationEvent[] {
+// Assim como reuniões, eventos não têm dono próprio — passa pelo JOIN em
+// leads.user_id.
+
+export function listEventsForLead(leadId: string, userId: string): ConversationEvent[] {
   const rows = db
     .prepare(
-      "SELECT * FROM conversation_events WHERE lead_id = ? ORDER BY created_at ASC"
+      `SELECT e.* FROM conversation_events e
+       JOIN leads l ON l.id = e.lead_id
+       WHERE e.lead_id = ? AND l.user_id = ?
+       ORDER BY e.created_at ASC`
     )
-    .all(leadId) as EventRow[];
+    .all(leadId, userId) as EventRow[];
   return rows.map(rowToEvent);
 }
 
 export function listRecentEvents(
+  userId: string,
   limit = 8
 ): (ConversationEvent & { leadName: string })[] {
   const rows = db
     .prepare(
       `SELECT e.*, l.name as lead_name FROM conversation_events e
        JOIN leads l ON l.id = e.lead_id
+       WHERE l.user_id = ?
        ORDER BY e.created_at DESC
        LIMIT ?`
     )
-    .all(limit) as (EventRow & { lead_name: string })[];
+    .all(userId, limit) as (EventRow & { lead_name: string })[];
   return rows.map((r) => ({ ...rowToEvent(r), leadName: r.lead_name }));
 }
 
+// Sem userId aqui de propósito: quem chama já verificou a posse do lead
+// (via getLead(id, userId)) antes de registrar o evento.
 export function addEvent(input: {
   leadId: string;
   channel: Channel;

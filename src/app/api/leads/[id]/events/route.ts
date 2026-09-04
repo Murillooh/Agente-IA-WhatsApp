@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addEvent, listEventsForLead } from "@/lib/repo/events";
+import { getLead } from "@/lib/repo/leads";
+import { getSession } from "@/lib/auth/session";
 import type { Channel, Direction } from "@/lib/types";
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+
   const { id } = await params;
-  return NextResponse.json(listEventsForLead(id));
+  return NextResponse.json(listEventsForLead(id, session.userId));
 }
 
 // Permite registrar manualmente uma resposta do lead ou uma nota
@@ -16,7 +21,14 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+
   const { id } = await params;
+  if (!getLead(id, session.userId)) {
+    return NextResponse.json({ error: "Lead não encontrado." }, { status: 404 });
+  }
+
   const body = await req.json();
   if (!body?.content) {
     return NextResponse.json({ error: "Conteúdo é obrigatório." }, { status: 400 });

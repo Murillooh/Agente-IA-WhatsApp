@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createLead } from "@/lib/repo/leads";
 import { addEvent } from "@/lib/repo/events";
+import { getSession } from "@/lib/auth/session";
 import type { Mode } from "@/lib/types";
 
 // Importa leads em massa ("puxar leads") a partir de um CSV colado pelo
@@ -8,6 +9,9 @@ import type { Mode } from "@/lib/types";
 // name,phone,whatsapp,instagram,source,mode
 // mode aceita "MODO_1" ou "MODO_2" (padrão: MODO_1).
 export async function POST(req: NextRequest) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+
   const body = await req.json();
   const csv: string = body?.csv ?? "";
   if (!csv.trim()) {
@@ -60,7 +64,7 @@ export async function POST(req: NextRequest) {
     const modeRaw = modeIdx >= 0 ? cols[modeIdx]?.toUpperCase() : "";
     const mode: Mode = modeRaw === "MODO_2" ? "MODO_2" : "MODO_1";
 
-    const lead = createLead({
+    const lead = createLead(session.userId, {
       name,
       phone,
       whatsapp,

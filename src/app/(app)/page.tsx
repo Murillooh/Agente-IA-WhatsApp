@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Users, CalendarClock, PhoneCall, TrendingUp, ArrowRight } from "lucide-react";
 import {
   countLeadsByMode,
@@ -7,6 +8,7 @@ import {
 } from "@/lib/repo/leads";
 import { countUpcomingMeetings, listMeetings } from "@/lib/repo/meetings";
 import { listRecentEvents } from "@/lib/repo/events";
+import { getSession } from "@/lib/auth/session";
 import { ChannelBadge } from "@/components/Badges";
 import { STATUS_LABELS, type LeadStatus } from "@/lib/types";
 
@@ -30,15 +32,19 @@ const FUNNEL_COLORS: Record<LeadStatus, string> = {
   PERDIDO: "bg-rose-500",
 };
 
-export default function DashboardPage() {
-  const totalLeads = listLeads().length;
-  const byStatus = countLeadsByStatus();
-  const byMode = countLeadsByMode();
-  const upcomingMeetings = countUpcomingMeetings();
-  const nextMeetings = listMeetings()
+export default async function DashboardPage() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  const userId = session.userId;
+
+  const totalLeads = listLeads(userId).length;
+  const byStatus = countLeadsByStatus(userId);
+  const byMode = countLeadsByMode(userId);
+  const upcomingMeetings = countUpcomingMeetings(userId);
+  const nextMeetings = listMeetings(userId)
     .filter((m) => m.status === "AGENDADA")
     .slice(0, 5);
-  const recentEvents = listRecentEvents(6);
+  const recentEvents = listRecentEvents(userId, 6);
 
   const maxCount = Math.max(1, ...FUNNEL_ORDER.map((s) => byStatus[s]));
   const conversionRate =
