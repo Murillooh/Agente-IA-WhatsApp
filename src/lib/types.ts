@@ -46,6 +46,13 @@ export interface Meeting {
   updatedAt: string;
 }
 
+export interface LeadTag {
+  id: string;
+  leadId: string;
+  label: string;
+  createdAt: string;
+}
+
 export interface SalesScript {
   id: string;
   name: string;

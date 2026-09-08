@@ -71,6 +71,16 @@ CREATE TABLE IF NOT EXISTS conversation_events (
   created_at TEXT NOT NULL
 );
 
+-- Tag de texto livre por lead (ex: "quente", "voltar semana que vem").
+-- UNIQUE evita adicionar a mesma tag duas vezes no mesmo lead.
+CREATE TABLE IF NOT EXISTS lead_tags (
+  id TEXT PRIMARY KEY,
+  lead_id TEXT NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+  label TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  UNIQUE(lead_id, label)
+);
+
 CREATE TABLE IF NOT EXISTS meetings (
   id TEXT PRIMARY KEY,
   lead_id TEXT NOT NULL UNIQUE REFERENCES leads(id) ON DELETE CASCADE,
@@ -95,6 +105,7 @@ CREATE TABLE IF NOT EXISTS scripts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_events_lead ON conversation_events(lead_id);
+CREATE INDEX IF NOT EXISTS idx_tags_lead ON lead_tags(lead_id);
 `);
 
 seedAdminIfEmpty();

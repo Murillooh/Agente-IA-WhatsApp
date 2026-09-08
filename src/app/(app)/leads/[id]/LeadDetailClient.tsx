@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { PhoneCall, Loader2, CalendarPlus, CheckCircle2, XCircle, Pencil } from "lucide-react";
+import { PhoneCall, Loader2, CalendarPlus, CheckCircle2, XCircle, Pencil, Tag, X } from "lucide-react";
 import { StatusBadge, ModeBadge, ChannelBadge } from "@/components/Badges";
-import type { Channel, ConversationEvent, Lead, LeadStatus, Meeting, Mode } from "@/lib/types";
+import type { Channel, ConversationEvent, Lead, LeadStatus, LeadTag, Meeting, Mode } from "@/lib/types";
 import { STATUS_LABELS } from "@/lib/types";
 
 const CHANNEL_DOT: Record<Channel, string> = {
@@ -24,10 +24,12 @@ export function LeadDetailClient({
   lead,
   events,
   meeting,
+  tags,
 }: {
   lead: Lead;
   events: ConversationEvent[];
   meeting: Meeting | null;
+  tags: LeadTag[];
 }) {
   const router = useRouter();
   const [running, setRunning] = useState(false);
@@ -35,6 +37,8 @@ export function LeadDetailClient({
   const [showEdit, setShowEdit] = useState(false);
   const [note, setNote] = useState("");
   const [savingNote, setSavingNote] = useState(false);
+  const [newTag, setNewTag] = useState("");
+  const [savingTag, setSavingTag] = useState(false);
 
   async function runAutomation() {
     setRunning(true);
@@ -78,6 +82,25 @@ export function LeadDetailClient({
     router.refresh();
   }
 
+  async function addTag(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newTag.trim()) return;
+    setSavingTag(true);
+    await fetch(`/api/leads/${lead.id}/tags`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ label: newTag }),
+    });
+    setNewTag("");
+    setSavingTag(false);
+    router.refresh();
+  }
+
+  async function removeTag(tagId: string) {
+    await fetch(`/api/leads/${lead.id}/tags/${tagId}`, { method: "DELETE" });
+    router.refresh();
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -88,6 +111,33 @@ export function LeadDetailClient({
           <div className="mt-2.5 flex flex-wrap items-center gap-2">
             <ModeBadge mode={lead.mode} />
             <StatusBadge status={lead.status} />
+          </div>
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+            {tags.map((t) => (
+              <span
+                key={t.id}
+                className="group inline-flex items-center gap-1 rounded-full bg-slate-100 py-0.5 pl-2 pr-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+              >
+                <Tag size={10} />
+                {t.label}
+                <button
+                  onClick={() => removeTag(t.id)}
+                  className="rounded-full p-0.5 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-white"
+                  aria-label={`Remover tag ${t.label}`}
+                >
+                  <X size={10} />
+                </button>
+              </span>
+            ))}
+            <form onSubmit={addTag} className="inline-flex items-center">
+              <input
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                placeholder="+ tag"
+                disabled={savingTag}
+                className="w-20 rounded-full border border-dashed border-slate-300 bg-transparent px-2.5 py-1 text-xs text-slate-500 placeholder:text-slate-400 focus:w-32 focus:border-solid focus:border-indigo-400 focus:outline-none dark:border-slate-700 dark:text-slate-400 dark:placeholder:text-slate-600 transition-all"
+              />
+            </form>
           </div>
         </div>
         <div className="flex gap-2">
