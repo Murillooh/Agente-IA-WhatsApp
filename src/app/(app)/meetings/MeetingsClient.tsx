@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, XCircle, CalendarClock } from "lucide-react";
+import { CheckCircle2, XCircle, CalendarClock, CalendarCog } from "lucide-react";
 import type { Meeting } from "@/lib/types";
 
 type MeetingRow = Meeting & { leadName: string };
@@ -15,6 +16,7 @@ const statusStyles: Record<string, string> = {
 
 export function MeetingsClient({ meetings }: { meetings: MeetingRow[] }) {
   const router = useRouter();
+  const [rescheduling, setRescheduling] = useState<MeetingRow | null>(null);
 
   async function updateStatus(leadId: string, status: "REALIZADA" | "CANCELADA") {
     await fetch(`/api/leads/${leadId}/meeting`, {
@@ -90,29 +92,134 @@ export function MeetingsClient({ meetings }: { meetings: MeetingRow[] }) {
                 </td>
                 <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{m.notes || "—"}</td>
                 <td className="px-4 py-3">
-                  {m.status === "AGENDADA" && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => updateStatus(m.leadId, "REALIZADA")}
-                        title="Marcar como realizada"
-                        className="text-emerald-600 transition-colors hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
-                      >
-                        <CheckCircle2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => updateStatus(m.leadId, "CANCELADA")}
-                        title="Cancelar"
-                        className="text-slate-400 transition-colors hover:text-rose-600 dark:text-slate-500 dark:hover:text-rose-400"
-                      >
-                        <XCircle size={16} />
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setRescheduling(m)}
+                      title="Reagendar"
+                      className="text-slate-400 transition-colors hover:text-indigo-600 dark:text-slate-500 dark:hover:text-indigo-400"
+                    >
+                      <CalendarCog size={16} />
+                    </button>
+                    {m.status === "AGENDADA" && (
+                      <>
+                        <button
+                          onClick={() => updateStatus(m.leadId, "REALIZADA")}
+                          title="Marcar como realizada"
+                          className="text-emerald-600 transition-colors hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+                        >
+                          <CheckCircle2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => updateStatus(m.leadId, "CANCELADA")}
+                          title="Cancelar"
+                          className="text-slate-400 transition-colors hover:text-rose-600 dark:text-slate-500 dark:hover:text-rose-400"
+                        >
+                          <XCircle size={16} />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      {rescheduling && (
+        <RescheduleModal
+          meeting={rescheduling}
+          onClose={() => setRescheduling(null)}
+          onDone={() => router.refresh()}
+        />
+      )}
+    </div>
+  );
+}
+
+// "2026-09-08T21:25" — formato que <input type="datetime-local"> espera,
+// no fuso local do navegador (toISOString() sempre devolve UTC).
+function toLocalInputValue(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function RescheduleModal({
+  meeting,
+  onClose,
+  onDone,
+}: {
+  meeting: MeetingRow;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const [datetime, setDatetime] = useState(toLocalInputValue(meeting.scheduledAt));
+  const [notes, setNotes] = useState(meeting.notes ?? "");
+  const [saving, setSaving] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!datetime) return;
+    setSaving(true);
+    await fetch(`/api/leads/${meeting.leadId}/meeting`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        scheduledAt: new Date(datetime).toISOString(),
+        notes,
+      }),
+    });
+    setSaving(false);
+    onDone();
+    onClose();
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl ring-1 ring-slate-900/5 dark:bg-slate-800 dark:ring-white/10"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">
+          Reagendar — {meeting.leadName}
+        </h3>
+        <form onSubmit={submit} className="mt-4 space-y-3">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Data e hora
+            </span>
+            <input
+              required
+              type="datetime-local"
+              value={datetime}
+              onChange={(e) => setDatetime(e.target.value)}
+              className="input"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Notas
+            </span>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              className="input"
+            />
+          </label>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className="btn-secondary">
+              Cancelar
+            </button>
+            <button type="submit" disabled={saving} className="btn-primary">
+              {saving ? "Salvando..." : "Reagendar"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
