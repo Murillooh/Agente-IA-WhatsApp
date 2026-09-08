@@ -36,6 +36,17 @@ export function getUserById(id: string): User | null {
   return row ? rowToUser(row) : null;
 }
 
+/** Mesmo cuidado de findUserByUsernameWithHash — hash é só pra conferir a senha atual. */
+export function getUserByIdWithHash(id: string): (User & { passwordHash: string }) | null {
+  const row = db.prepare("SELECT * FROM users WHERE id = ?").get(id) as UserRow | undefined;
+  if (!row) return null;
+  return { ...rowToUser(row), passwordHash: row.password_hash };
+}
+
+export function updatePasswordHash(id: string, passwordHash: string): void {
+  db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(passwordHash, id);
+}
+
 export function createUser(input: { username: string; name: string; passwordHash: string }): User {
   const id = randomUUID();
   const now = new Date().toISOString();

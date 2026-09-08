@@ -10,6 +10,7 @@ import {
   Plug,
   Target,
   LogOut,
+  UserCircle,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -19,6 +20,7 @@ const links = [
   { href: "/meetings", label: "Reuniões", icon: CalendarClock },
   { href: "/scripts", label: "Scripts", icon: FileText },
   { href: "/settings/integrations", label: "Integrações", icon: Plug },
+  { href: "/settings/profile", label: "Perfil", icon: UserCircle },
 ];
 
 export function Sidebar() {
