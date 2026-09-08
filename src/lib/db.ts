@@ -32,6 +32,17 @@ CREATE TABLE IF NOT EXISTS users (
   username TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   password_hash TEXT NOT NULL,
+  is_admin INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL
+);
+
+-- Registro append-only de mutação sensível (status de lead, exclusão,
+-- troca de senha) — só leitura pela tela de administração, nunca editado.
+CREATE TABLE IF NOT EXISTS audit_log (
+  id TEXT PRIMARY KEY,
+  user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  action TEXT NOT NULL,
+  detail TEXT,
   created_at TEXT NOT NULL
 );
 
@@ -89,6 +100,7 @@ CREATE INDEX IF NOT EXISTS idx_events_lead ON conversation_events(lead_id);
 seedAdminIfEmpty();
 const legacyOwnerId = resolveLegacyDataOwnerId();
 migrateLeadsUserId(legacyOwnerId);
+migrateUsersIsAdmin();
 // Só depois da migração é que a coluna user_id existe garantidamente em
 // bancos antigos — por isso esse índice não entra no bloco de exec() lá
 // em cima (senão quebra em qualquer banco criado antes dessa mudança).
@@ -121,6 +133,18 @@ function migrateLeadsUserId(fallbackUserId: string) {
 
   db.exec("ALTER TABLE leads ADD COLUMN user_id TEXT REFERENCES users(id)");
   db.prepare("UPDATE leads SET user_id = ? WHERE user_id IS NULL").run(fallbackUserId);
+}
+
+// Bancos criados antes do conceito de admin têm a tabela "users" sem a
+// coluna is_admin — mesma mecânica de migrateLeadsUserId. Depois de
+// garantir a coluna, a conta pessoal sempre vira admin (idempotente:
+// roda toda subida, não só na primeira vez que a coluna é criada).
+function migrateUsersIsAdmin() {
+  const columns = db.prepare("PRAGMA table_info(users)").all() as { name: string }[];
+  if (!columns.some((c) => c.name === "is_admin")) {
+    db.exec("ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0");
+  }
+  db.prepare("UPDATE users SET is_admin = 1 WHERE username = ?").run("muurisattos@gmail.com");
 }
 
 function seedIfEmpty(userId: string) {

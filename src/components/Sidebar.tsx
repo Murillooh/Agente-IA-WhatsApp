@@ -11,21 +11,23 @@ import {
   Target,
   LogOut,
   UserCircle,
+  ShieldCheck,
 } from "lucide-react";
 import clsx from "clsx";
 
-const links = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/leads", label: "Leads", icon: Users },
-  { href: "/meetings", label: "Reuniões", icon: CalendarClock },
-  { href: "/scripts", label: "Scripts", icon: FileText },
-  { href: "/settings/integrations", label: "Integrações", icon: Plug },
-  { href: "/settings/profile", label: "Perfil", icon: UserCircle },
-];
-
-export function Sidebar() {
+export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
+
+  const links = [
+    { href: "/", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/leads", label: "Leads", icon: Users },
+    { href: "/meetings", label: "Reuniões", icon: CalendarClock },
+    { href: "/scripts", label: "Scripts", icon: FileText },
+    { href: "/settings/integrations", label: "Integrações", icon: Plug },
+    { href: "/settings/profile", label: "Perfil", icon: UserCircle },
+    ...(isAdmin ? [{ href: "/settings/admin", label: "Administração", icon: ShieldCheck }] : []),
+  ];
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });

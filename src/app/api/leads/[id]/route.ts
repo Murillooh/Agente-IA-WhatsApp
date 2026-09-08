@@ -3,6 +3,7 @@ import { deleteLead, getLead, updateLead, updateLeadStatus } from "@/lib/repo/le
 import { listEventsForLead } from "@/lib/repo/events";
 import { getMeetingForLead } from "@/lib/repo/meetings";
 import { getSession } from "@/lib/auth/session";
+import { logAudit } from "@/lib/repo/audit";
 import type { LeadStatus } from "@/lib/types";
 
 export async function GET(
@@ -33,8 +34,14 @@ export async function PATCH(
   const body = await req.json();
 
   if (body.status) {
+    const before = getLead(id, session.userId);
     const lead = updateLeadStatus(id, session.userId, body.status as LeadStatus);
     if (!lead) return NextResponse.json({ error: "Lead não encontrado." }, { status: 404 });
+    logAudit(
+      session.userId,
+      "lead.status_change",
+      `${lead.name}: ${before?.status ?? "?"} → ${lead.status}`
+    );
     return NextResponse.json(lead);
   }
 
@@ -51,6 +58,8 @@ export async function DELETE(
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;
+  const lead = getLead(id, session.userId);
   deleteLead(id, session.userId);
+  if (lead) logAudit(session.userId, "lead.delete", lead.name);
   return NextResponse.json({ ok: true });
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserById, getUserByIdWithHash, updatePasswordHash } from "@/lib/repo/users";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { getSession } from "@/lib/auth/session";
+import { logAudit } from "@/lib/repo/audit";
 
 export async function GET() {
   const session = await getSession();
@@ -40,5 +41,6 @@ export async function PATCH(req: NextRequest) {
   }
 
   updatePasswordHash(session.userId, hashPassword(newPassword));
+  logAudit(session.userId, "user.password_change");
   return NextResponse.json({ ok: true });
 }
