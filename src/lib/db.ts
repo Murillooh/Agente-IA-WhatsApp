@@ -62,12 +62,15 @@ CREATE TABLE IF NOT EXISTS leads (
   updated_at TEXT NOT NULL
 );
 
+-- script_id: qual variante de script gerou essa mensagem (só em envios da
+-- automação) — é o que alimenta a comparação de teste A/B por script.
 CREATE TABLE IF NOT EXISTS conversation_events (
   id TEXT PRIMARY KEY,
   lead_id TEXT NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
   channel TEXT NOT NULL CHECK (channel IN ('WHATSAPP','INSTAGRAM','LIGACAO','SISTEMA')),
   direction TEXT NOT NULL CHECK (direction IN ('SAIDA','ENTRADA')),
   content TEXT NOT NULL,
+  script_id TEXT REFERENCES scripts(id) ON DELETE SET NULL,
   created_at TEXT NOT NULL
 );
 
@@ -93,12 +96,22 @@ CREATE TABLE IF NOT EXISTS meetings (
 
 -- Scripts de vendas continuam compartilhados por toda a equipe (são
 -- modelos/playbook, não dado sensível de cada usuário).
+--
+-- group_id: liga as versões de um mesmo script — editar o conteúdo não
+-- sobrescreve a linha, insere uma versão nova com group_id igual e
+-- "version" +1, e desativa a anterior (histórico fica intacto).
+-- weight: peso relativo pra escolher entre variantes ativas do mesmo
+-- Modo+Canal (teste A/B emerge sozinho quando 2 grupos do mesmo
+-- Modo+Canal ficam ativos ao mesmo tempo — não tem "modo A/B" à parte).
 CREATE TABLE IF NOT EXISTS scripts (
   id TEXT PRIMARY KEY,
+  group_id TEXT NOT NULL,
+  version INTEGER NOT NULL DEFAULT 1,
   name TEXT NOT NULL,
   mode TEXT NOT NULL CHECK (mode IN ('MODO_1','MODO_2')),
   channel TEXT NOT NULL CHECK (channel IN ('WHATSAPP','INSTAGRAM','LIGACAO')),
   content TEXT NOT NULL,
+  weight INTEGER NOT NULL DEFAULT 100,
   is_active INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
@@ -112,10 +125,14 @@ seedAdminIfEmpty();
 const legacyOwnerId = resolveLegacyDataOwnerId();
 migrateLeadsUserId(legacyOwnerId);
 migrateUsersIsAdmin();
+migrateScriptsVersioning();
+migrateEventsScriptId();
 // Só depois da migração é que a coluna user_id existe garantidamente em
 // bancos antigos — por isso esse índice não entra no bloco de exec() lá
 // em cima (senão quebra em qualquer banco criado antes dessa mudança).
+// Mesmo motivo pro índice de group_id logo abaixo.
 db.exec("CREATE INDEX IF NOT EXISTS idx_leads_user ON leads(user_id)");
+db.exec("CREATE INDEX IF NOT EXISTS idx_scripts_group ON scripts(group_id)");
 seedIfEmpty(legacyOwnerId);
 
 // Dono dos leads que já existiam antes do conceito de usuário (ou dos
@@ -158,6 +175,36 @@ function migrateUsersIsAdmin() {
   db.prepare("UPDATE users SET is_admin = 1 WHERE username = ?").run("muurisattos@gmail.com");
 }
 
+// Bancos criados antes do versionamento de script têm "scripts" sem
+// group_id/version/weight — mesma mecânica das outras migrações de coluna.
+// group_id vira o próprio id da linha: cada script antigo passa a ser o
+// "v1" da sua própria família, sem perder nada.
+function migrateScriptsVersioning() {
+  const columns = db.prepare("PRAGMA table_info(scripts)").all() as { name: string }[];
+  if (!columns.some((c) => c.name === "group_id")) {
+    db.exec("ALTER TABLE scripts ADD COLUMN group_id TEXT");
+    db.prepare("UPDATE scripts SET group_id = id WHERE group_id IS NULL").run();
+  }
+  if (!columns.some((c) => c.name === "version")) {
+    db.exec("ALTER TABLE scripts ADD COLUMN version INTEGER NOT NULL DEFAULT 1");
+  }
+  if (!columns.some((c) => c.name === "weight")) {
+    db.exec("ALTER TABLE scripts ADD COLUMN weight INTEGER NOT NULL DEFAULT 100");
+  }
+}
+
+// Idem pra conversation_events.script_id (qual variante de script gerou a
+// mensagem — alimenta a comparação de teste A/B). Evento antigo fica NULL,
+// que é o certo: ele existiu antes desse rastreio existir.
+function migrateEventsScriptId() {
+  const columns = db.prepare("PRAGMA table_info(conversation_events)").all() as {
+    name: string;
+  }[];
+  if (!columns.some((c) => c.name === "script_id")) {
+    db.exec("ALTER TABLE conversation_events ADD COLUMN script_id TEXT REFERENCES scripts(id)");
+  }
+}
+
 function seedIfEmpty(userId: string) {
   const { count } = db.prepare("SELECT COUNT(*) as count FROM leads").get() as {
     count: number;
@@ -181,8 +228,8 @@ function seedIfEmpty(userId: string) {
      VALUES (@id, @lead_id, @scheduled_at, @status, @notes, @created_at, @updated_at)`
   );
   const insertScript = db.prepare(
-    `INSERT INTO scripts (id, name, mode, channel, content, is_active, created_at, updated_at)
-     VALUES (@id, @name, @mode, @channel, @content, 1, @created_at, @updated_at)`
+    `INSERT INTO scripts (id, group_id, version, name, mode, channel, content, weight, is_active, created_at, updated_at)
+     VALUES (@id, @id, 1, @name, @mode, @channel, @content, 100, 1, @created_at, @updated_at)`
   );
 
   const uid = () => crypto.randomUUID();

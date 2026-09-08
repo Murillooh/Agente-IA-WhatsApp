@@ -60,13 +60,14 @@ export function addEvent(input: {
   channel: Channel;
   direction: Direction;
   content: string;
+  scriptId?: string | null;
 }): ConversationEvent {
   const id = randomUUID();
   const now = new Date().toISOString();
   db.prepare(
-    `INSERT INTO conversation_events (id, lead_id, channel, direction, content, created_at)
-     VALUES (@id, @leadId, @channel, @direction, @content, @now)`
-  ).run({ id, ...input, now });
+    `INSERT INTO conversation_events (id, lead_id, channel, direction, content, script_id, created_at)
+     VALUES (@id, @leadId, @channel, @direction, @content, @scriptId, @now)`
+  ).run({ ...input, id, scriptId: input.scriptId ?? null, now });
   const row = db
     .prepare("SELECT * FROM conversation_events WHERE id = ?")
     .get(id) as EventRow;

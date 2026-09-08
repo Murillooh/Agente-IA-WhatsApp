@@ -39,6 +39,7 @@ export async function runAutomationForLead(leadId: string, userId: string) {
       content: result.ok
         ? message
         : `Falha ao enviar WhatsApp: ${result.error}`,
+      scriptId: script?.id,
     });
     steps.push("whatsapp");
   }
@@ -59,6 +60,7 @@ export async function runAutomationForLead(leadId: string, userId: string) {
       content: result.ok
         ? message
         : `Falha ao enviar Instagram: ${result.error}`,
+      scriptId: script?.id,
     });
     steps.push("instagram");
   }
@@ -145,6 +147,7 @@ export async function runFollowUpForLead(leadId: string, userId: string) {
       channel: "WHATSAPP",
       direction: "SAIDA",
       content: result.ok ? message : `Falha ao enviar WhatsApp (follow-up): ${result.error}`,
+      scriptId: script?.id,
     });
     steps.push("whatsapp");
   }
@@ -158,6 +161,7 @@ export async function runFollowUpForLead(leadId: string, userId: string) {
       channel: "INSTAGRAM",
       direction: "SAIDA",
       content: result.ok ? message : `Falha ao enviar Instagram (follow-up): ${result.error}`,
+      scriptId: script?.id,
     });
     steps.push("instagram");
   }

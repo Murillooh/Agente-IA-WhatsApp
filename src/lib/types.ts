@@ -55,10 +55,13 @@ export interface LeadTag {
 
 export interface SalesScript {
   id: string;
+  groupId: string;
+  version: number;
   name: string;
   mode: Mode;
   channel: Channel;
   content: string;
+  weight: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
