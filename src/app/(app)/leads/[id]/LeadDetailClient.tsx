@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { PhoneCall, Loader2, CalendarPlus, CheckCircle2, XCircle } from "lucide-react";
+import { PhoneCall, Loader2, CalendarPlus, CheckCircle2, XCircle, Pencil } from "lucide-react";
 import { StatusBadge, ModeBadge, ChannelBadge } from "@/components/Badges";
-import type { Channel, ConversationEvent, Lead, LeadStatus, Meeting } from "@/lib/types";
+import type { Channel, ConversationEvent, Lead, LeadStatus, Meeting, Mode } from "@/lib/types";
 import { STATUS_LABELS } from "@/lib/types";
 
 const CHANNEL_DOT: Record<Channel, string> = {
@@ -32,6 +32,7 @@ export function LeadDetailClient({
   const router = useRouter();
   const [running, setRunning] = useState(false);
   const [showSchedule, setShowSchedule] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const [note, setNote] = useState("");
   const [savingNote, setSavingNote] = useState(false);
 
@@ -96,6 +97,9 @@ export function LeadDetailClient({
           </button>
           <button onClick={() => setShowSchedule(true)} className="btn-secondary gap-1.5">
             <CalendarPlus size={15} /> Agendar reunião
+          </button>
+          <button onClick={() => setShowEdit(true)} className="btn-secondary gap-1.5">
+            <Pencil size={15} /> Editar
           </button>
         </div>
       </div>
@@ -232,6 +236,155 @@ export function LeadDetailClient({
           onDone={() => router.refresh()}
         />
       )}
+      {showEdit && (
+        <EditLeadModal
+          lead={lead}
+          onClose={() => setShowEdit(false)}
+          onDone={() => router.refresh()}
+        />
+      )}
+    </div>
+  );
+}
+
+function EditLeadModal({
+  lead,
+  onClose,
+  onDone,
+}: {
+  lead: Lead;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const [form, setForm] = useState({
+    name: lead.name,
+    whatsapp: lead.whatsapp ?? "",
+    phone: lead.phone ?? "",
+    instagram: lead.instagram ?? "",
+    source: lead.source ?? "",
+    mode: lead.mode,
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    const res = await fetch(`/api/leads/${lead.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: form.name,
+        whatsapp: form.whatsapp || null,
+        phone: form.phone || null,
+        instagram: form.instagram || null,
+        source: form.source || null,
+        mode: form.mode,
+      }),
+    });
+    setSaving(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      setError(data?.error ?? "Erro ao salvar.");
+      return;
+    }
+    onDone();
+    onClose();
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl ring-1 ring-slate-900/5 dark:bg-slate-800 dark:ring-white/10"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">
+          Editar lead
+        </h3>
+        <form onSubmit={submit} className="mt-4 space-y-3">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Nome *
+            </span>
+            <input
+              required
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="input"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+              WhatsApp
+            </span>
+            <input
+              value={form.whatsapp}
+              onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+              placeholder="+55 11 90000-0000"
+              className="input"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Telefone (ligação)
+            </span>
+            <input
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              placeholder="+55 11 90000-0000"
+              className="input"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Instagram
+            </span>
+            <input
+              value={form.instagram}
+              onChange={(e) => setForm({ ...form, instagram: e.target.value })}
+              placeholder="@usuario"
+              className="input"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Origem
+            </span>
+            <input
+              value={form.source}
+              onChange={(e) => setForm({ ...form, source: e.target.value })}
+              placeholder="Ex: lista de prospecção X"
+              className="input"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Modo
+            </span>
+            <select
+              value={form.mode}
+              onChange={(e) => setForm({ ...form, mode: e.target.value as Mode })}
+              className="input"
+            >
+              <option value="MODO_1">Modo 1 · WhatsApp/Instagram</option>
+              <option value="MODO_2">Modo 2 · WhatsApp/Instagram + Ligação</option>
+            </select>
+          </label>
+          {error && <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className="btn-secondary">
+              Cancelar
+            </button>
+            <button type="submit" disabled={saving} className="btn-primary">
+              {saving ? "Salvando..." : "Salvar"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
