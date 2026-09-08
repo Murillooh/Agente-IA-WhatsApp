@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Upload, PhoneCall, Loader2, Users, Search, X } from "lucide-react";
+import { Plus, Upload, Download, PhoneCall, Loader2, Users, Search, X } from "lucide-react";
 import { StatusBadge, ModeBadge } from "@/components/Badges";
 import type { Lead, LeadStatus, Mode } from "@/lib/types";
 import { MODE_LABELS, STATUS_LABELS } from "@/lib/types";
@@ -89,6 +89,9 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
           </p>
         </div>
         <div className="flex gap-2">
+          <Link href="/api/leads/export" className="btn-secondary gap-1.5">
+            <Download size={15} /> Exportar CSV
+          </Link>
           <button onClick={() => setShowImport(true)} className="btn-secondary gap-1.5">
             <Upload size={15} /> Importar CSV
           </button>
