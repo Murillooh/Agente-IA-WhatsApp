@@ -117,6 +117,54 @@ export async function runAutomationBatch(
   return results;
 }
 
+/**
+ * Reenvia a mensagem de prospecção pra um lead que já foi contatado e não
+ * respondeu — chamado pelo cron de follow-up (src/app/api/cron/follow-up),
+ * nunca direto por um usuário. Só WhatsApp/Instagram (texto): ligar de novo
+ * sozinho, sem gatilho humano, é mais invasivo do que vale a pena por
+ * enquanto — fica de fora por decisão deliberada, não esquecimento.
+ */
+export async function runFollowUpForLead(leadId: string, userId: string) {
+  const lead = getLead(leadId, userId);
+  if (!lead) throw new Error("Lead não encontrado");
+
+  const steps: string[] = [];
+  addEvent({
+    leadId,
+    channel: "SISTEMA",
+    direction: "SAIDA",
+    content: "Follow-up automático disparado (sem resposta há alguns dias).",
+  });
+
+  if (lead.whatsapp) {
+    const script = getActiveScript(lead.mode, "WHATSAPP");
+    const message = renderScript(script?.content, lead);
+    const result = await sendWhatsAppMessage({ to: lead.whatsapp, message, leadId });
+    addEvent({
+      leadId,
+      channel: "WHATSAPP",
+      direction: "SAIDA",
+      content: result.ok ? message : `Falha ao enviar WhatsApp (follow-up): ${result.error}`,
+    });
+    steps.push("whatsapp");
+  }
+
+  if (lead.instagram) {
+    const script = getActiveScript(lead.mode, "INSTAGRAM");
+    const message = renderScript(script?.content, lead);
+    const result = await sendInstagramMessage({ to: lead.instagram, message, leadId });
+    addEvent({
+      leadId,
+      channel: "INSTAGRAM",
+      direction: "SAIDA",
+      content: result.ok ? message : `Falha ao enviar Instagram (follow-up): ${result.error}`,
+    });
+    steps.push("instagram");
+  }
+
+  return { leadId, steps };
+}
+
 /** Variáveis disponíveis no template de script, além de {{nome}}: {{origem}}
  * (source do lead, ou "seu contato" se não tiver) e {{telefone}} (WhatsApp
  * ou telefone, o que estiver preenchido). */

@@ -19,6 +19,12 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Cron (Vercel Cron ou teste manual) não manda cookie de sessão — a
+  // própria rota confere o header Authorization contra CRON_SECRET.
+  if (pathname.startsWith("/api/cron/")) {
+    return NextResponse.next();
+  }
+
   if (!session) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
