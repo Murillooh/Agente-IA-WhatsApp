@@ -89,11 +89,16 @@ function ScriptCard({ script, onChange }: { script: SalesScript; onChange: () =>
         className="input mt-3 text-sm leading-relaxed"
       />
       <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-        Use{" "}
+        Variáveis:{" "}
         <code className="rounded bg-slate-50 px-1 py-0.5 dark:bg-slate-800">
           {"{{nome}}"}
         </code>{" "}
-        para inserir o nome do lead.
+        <code className="rounded bg-slate-50 px-1 py-0.5 dark:bg-slate-800">
+          {"{{origem}}"}
+        </code>{" "}
+        <code className="rounded bg-slate-50 px-1 py-0.5 dark:bg-slate-800">
+          {"{{telefone}}"}
+        </code>
       </p>
       {dirty && (
         <button onClick={save} disabled={saving} className="btn-primary mt-2 gap-1.5">

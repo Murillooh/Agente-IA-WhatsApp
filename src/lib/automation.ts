@@ -4,6 +4,7 @@ import { getActiveScript } from "@/lib/repo/scripts";
 import { sendWhatsAppMessage } from "@/lib/integrations/whatsapp";
 import { sendInstagramMessage } from "@/lib/integrations/instagram";
 import { makeCall } from "@/lib/integrations/voice";
+import type { Lead } from "@/lib/types";
 
 /**
  * Orquestra um "disparo" de automação para um lead: manda a mensagem de
@@ -25,7 +26,7 @@ export async function runAutomationForLead(leadId: string, userId: string) {
   // 1) WhatsApp, se houver número
   if (lead.whatsapp) {
     const script = getActiveScript(lead.mode, "WHATSAPP");
-    const message = renderScript(script?.content, lead.name);
+    const message = renderScript(script?.content, lead);
     const result = await sendWhatsAppMessage({
       to: lead.whatsapp,
       message,
@@ -45,7 +46,7 @@ export async function runAutomationForLead(leadId: string, userId: string) {
   // 2) Instagram, se houver usuário
   if (lead.instagram) {
     const script = getActiveScript(lead.mode, "INSTAGRAM");
-    const message = renderScript(script?.content, lead.name);
+    const message = renderScript(script?.content, lead);
     const result = await sendInstagramMessage({
       to: lead.instagram,
       message,
@@ -116,9 +117,18 @@ export async function runAutomationBatch(
   return results;
 }
 
-function renderScript(template: string | undefined, name: string): string {
+/** Variáveis disponíveis no template de script, além de {{nome}}: {{origem}}
+ * (source do lead, ou "seu contato" se não tiver) e {{telefone}} (WhatsApp
+ * ou telefone, o que estiver preenchido). */
+function renderScript(
+  template: string | undefined,
+  lead: Pick<Lead, "name" | "source" | "whatsapp" | "phone">
+): string {
   const base =
     template ??
     "Oi {{nome}}! Aqui é da [Sua Empresa]. Podemos conversar 15 min essa semana?";
-  return base.replaceAll("{{nome}}", name);
+  return base
+    .replaceAll("{{nome}}", lead.name)
+    .replaceAll("{{origem}}", lead.source ?? "seu contato")
+    .replaceAll("{{telefone}}", lead.whatsapp ?? lead.phone ?? "");
 }
