@@ -33,10 +33,30 @@ function rowToLead(r: LeadRow): Lead {
 // Toda função aqui recebe userId e filtra por ele — é isso que isola os
 // leads de cada conta. Nenhuma consulta de lead deve rodar sem esse filtro.
 
-export function listLeads(userId: string): Lead[] {
-  const rows = db
-    .prepare("SELECT * FROM leads WHERE user_id = ? ORDER BY created_at DESC")
-    .all(userId) as LeadRow[];
+/** from/to já vêm como ISO completo (o chamador resolve o fuso/dia). */
+export interface DateRange {
+  from?: string;
+  to?: string;
+}
+
+function rangeClause(range: DateRange | undefined, params: unknown[]): string {
+  let clause = "";
+  if (range?.from) {
+    clause += " AND created_at >= ?";
+    params.push(range.from);
+  }
+  if (range?.to) {
+    clause += " AND created_at <= ?";
+    params.push(range.to);
+  }
+  return clause;
+}
+
+export function listLeads(userId: string, range?: DateRange): Lead[] {
+  const params: unknown[] = [userId];
+  const sql =
+    "SELECT * FROM leads WHERE user_id = ?" + rangeClause(range, params) + " ORDER BY created_at DESC";
+  const rows = db.prepare(sql).all(...params) as LeadRow[];
   return rows.map(rowToLead);
 }
 
@@ -120,10 +140,13 @@ export function deleteLead(id: string, userId: string): void {
   db.prepare("DELETE FROM leads WHERE id = ? AND user_id = ?").run(id, userId);
 }
 
-export function countLeadsByStatus(userId: string): Record<LeadStatus, number> {
-  const rows = db
-    .prepare("SELECT status, COUNT(*) as c FROM leads WHERE user_id = ? GROUP BY status")
-    .all(userId) as { status: LeadStatus; c: number }[];
+export function countLeadsByStatus(userId: string, range?: DateRange): Record<LeadStatus, number> {
+  const params: unknown[] = [userId];
+  const sql =
+    "SELECT status, COUNT(*) as c FROM leads WHERE user_id = ?" +
+    rangeClause(range, params) +
+    " GROUP BY status";
+  const rows = db.prepare(sql).all(...params) as { status: LeadStatus; c: number }[];
   const base: Record<LeadStatus, number> = {
     NOVO: 0,
     CONTATADO: 0,
@@ -136,11 +159,44 @@ export function countLeadsByStatus(userId: string): Record<LeadStatus, number> {
   return base;
 }
 
-export function countLeadsByMode(userId: string): Record<Mode, number> {
-  const rows = db
-    .prepare("SELECT mode, COUNT(*) as c FROM leads WHERE user_id = ? GROUP BY mode")
-    .all(userId) as { mode: Mode; c: number }[];
+export function countLeadsByMode(userId: string, range?: DateRange): Record<Mode, number> {
+  const params: unknown[] = [userId];
+  const sql =
+    "SELECT mode, COUNT(*) as c FROM leads WHERE user_id = ?" +
+    rangeClause(range, params) +
+    " GROUP BY mode";
+  const rows = db.prepare(sql).all(...params) as { mode: Mode; c: number }[];
   const base: Record<Mode, number> = { MODO_1: 0, MODO_2: 0 };
   for (const r of rows) base[r.mode] = r.c;
   return base;
+}
+
+/** Média de dias entre criado e fechado — usa updated_at do lead FECHADO
+ * como aproximação da data de fechamento (não existe uma coluna própria
+ * pra isso hoje). null se não tiver nenhum lead fechado no período. */
+export function averageDaysToClose(userId: string, range?: DateRange): number | null {
+  const params: unknown[] = [userId];
+  const sql =
+    `SELECT AVG(julianday(updated_at) - julianday(created_at)) as avg_days
+     FROM leads WHERE user_id = ? AND status = 'FECHADO'` + rangeClause(range, params);
+  const row = db.prepare(sql).get(...params) as { avg_days: number | null };
+  return row.avg_days;
+}
+
+export interface SourceConversion {
+  source: string;
+  total: number;
+  closed: number;
+}
+
+export function conversionBySource(userId: string, range?: DateRange): SourceConversion[] {
+  const params: unknown[] = [userId];
+  const sql =
+    `SELECT COALESCE(source, 'Sem origem') as source,
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'FECHADO' THEN 1 ELSE 0 END) as closed
+     FROM leads WHERE user_id = ?` +
+    rangeClause(range, params) +
+    ` GROUP BY COALESCE(source, 'Sem origem') ORDER BY total DESC`;
+  return db.prepare(sql).all(...params) as SourceConversion[];
 }

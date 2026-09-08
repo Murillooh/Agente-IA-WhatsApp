@@ -1,15 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Users, CalendarClock, PhoneCall, TrendingUp, ArrowRight } from "lucide-react";
+import { Users, CalendarClock, PhoneCall, TrendingUp, ArrowRight, Timer } from "lucide-react";
 import {
+  averageDaysToClose,
+  conversionBySource,
   countLeadsByMode,
   countLeadsByStatus,
   listLeads,
+  type DateRange,
 } from "@/lib/repo/leads";
 import { countUpcomingMeetings, listMeetings } from "@/lib/repo/meetings";
 import { listRecentEvents } from "@/lib/repo/events";
 import { getSession } from "@/lib/auth/session";
 import { ChannelBadge } from "@/components/Badges";
+import { PeriodFilter } from "@/components/PeriodFilter";
 import { STATUS_LABELS, type LeadStatus } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -32,19 +36,35 @@ const FUNNEL_COLORS: Record<LeadStatus, string> = {
   PERDIDO: "bg-rose-500",
 };
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string; to?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/login");
   const userId = session.userId;
 
-  const totalLeads = listLeads(userId).length;
-  const byStatus = countLeadsByStatus(userId);
-  const byMode = countLeadsByMode(userId);
+  const { from, to } = await searchParams;
+  // from/to chegam como "AAAA-MM-DD" (data local do usuário) — vira o
+  // começo/fim do dia em ISO pra comparar com created_at, que é
+  // timestamp completo.
+  const range: DateRange = {
+    from: from ? `${from}T00:00:00.000Z` : undefined,
+    to: to ? `${to}T23:59:59.999Z` : undefined,
+  };
+  const periodActive = Boolean(range.from || range.to);
+
+  const totalLeads = listLeads(userId, range).length;
+  const byStatus = countLeadsByStatus(userId, range);
+  const byMode = countLeadsByMode(userId, range);
   const upcomingMeetings = countUpcomingMeetings(userId);
   const nextMeetings = listMeetings(userId)
     .filter((m) => m.status === "AGENDADA")
     .slice(0, 5);
   const recentEvents = listRecentEvents(userId, 6);
+  const avgDays = averageDaysToClose(userId, range);
+  const bySource = conversionBySource(userId, range);
 
   const maxCount = Math.max(1, ...FUNNEL_ORDER.map((s) => byStatus[s]));
   const conversionRate =
@@ -52,13 +72,18 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-          Dashboard
-        </h1>
-        <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-          Visão geral da prospecção — o objetivo é fechar reuniões.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Dashboard
+          </h1>
+          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+            {periodActive
+              ? "Visão da prospecção no período selecionado."
+              : "Visão geral da prospecção — o objetivo é fechar reuniões."}
+          </p>
+        </div>
+        <PeriodFilter />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -205,6 +230,73 @@ export default async function DashboardPage() {
               ))}
             </ul>
           </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="card p-6 xl:col-span-2">
+          <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
+            Conversão por origem
+          </h2>
+          {bySource.length === 0 ? (
+            <p className="mt-5 text-sm text-slate-400 dark:text-slate-500">
+              Nenhum lead {periodActive ? "no período" : "ainda"}.
+            </p>
+          ) : (
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-slate-100 text-xs font-medium uppercase tracking-wide text-slate-400 dark:border-slate-800 dark:text-slate-500">
+                  <tr>
+                    <th className="py-2 pr-3">Origem</th>
+                    <th className="py-2 pr-3">Leads</th>
+                    <th className="py-2 pr-3">Fechados</th>
+                    <th className="py-2">Conversão</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bySource.map((s) => {
+                    const rate = s.total > 0 ? Math.round((s.closed / s.total) * 100) : 0;
+                    return (
+                      <tr
+                        key={s.source}
+                        className="border-b border-slate-50 last:border-0 dark:border-slate-800/60"
+                      >
+                        <td className="py-2.5 pr-3 text-slate-700 dark:text-slate-300">
+                          {s.source}
+                        </td>
+                        <td className="py-2.5 pr-3 text-slate-500 dark:text-slate-400">
+                          {s.total}
+                        </td>
+                        <td className="py-2.5 pr-3 text-slate-500 dark:text-slate-400">
+                          {s.closed}
+                        </td>
+                        <td className="py-2.5 font-medium text-slate-900 dark:text-white">
+                          {rate}%
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="card p-6">
+          <div className={`flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400`}>
+            <Timer size={18} strokeWidth={2.25} />
+          </div>
+          <p className="mt-3 text-xs font-medium text-slate-500 dark:text-slate-400">
+            Tempo médio até fechar
+          </p>
+          <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            {avgDays === null ? "—" : `${avgDays.toFixed(1)} dias`}
+          </p>
+          <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+            {avgDays === null
+              ? "Nenhum lead fechado ainda."
+              : "Da criação do lead até o fechamento."}
+          </p>
         </div>
       </div>
     </div>

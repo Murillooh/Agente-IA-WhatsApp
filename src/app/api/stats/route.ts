@@ -1,20 +1,39 @@
-import { NextResponse } from "next/server";
-import { countLeadsByMode, countLeadsByStatus, listLeads } from "@/lib/repo/leads";
+import { NextRequest, NextResponse } from "next/server";
+import {
+  averageDaysToClose,
+  conversionBySource,
+  countLeadsByMode,
+  countLeadsByStatus,
+  listLeads,
+  type DateRange,
+} from "@/lib/repo/leads";
 import { countUpcomingMeetings, listMeetings } from "@/lib/repo/meetings";
 import { getSession } from "@/lib/auth/session";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   const userId = session.userId;
 
-  const byStatus = countLeadsByStatus(userId);
-  const byMode = countLeadsByMode(userId);
-  const totalLeads = listLeads(userId).length;
+  // ?from=AAAA-MM-DD&to=AAAA-MM-DD (data local do usuário) — mesma
+  // convenção do dashboard, viram começo/fim do dia em ISO.
+  const { searchParams } = req.nextUrl;
+  const from = searchParams.get("from");
+  const to = searchParams.get("to");
+  const range: DateRange = {
+    from: from ? `${from}T00:00:00.000Z` : undefined,
+    to: to ? `${to}T23:59:59.999Z` : undefined,
+  };
+
+  const byStatus = countLeadsByStatus(userId, range);
+  const byMode = countLeadsByMode(userId, range);
+  const totalLeads = listLeads(userId, range).length;
   const upcomingMeetings = countUpcomingMeetings(userId);
   const meetings = listMeetings(userId)
     .filter((m) => m.status === "AGENDADA")
     .slice(0, 5);
+  const avgDaysToClose = averageDaysToClose(userId, range);
+  const bySource = conversionBySource(userId, range);
 
   return NextResponse.json({
     totalLeads,
@@ -22,5 +41,7 @@ export async function GET() {
     byMode,
     upcomingMeetings,
     nextMeetings: meetings,
+    avgDaysToClose,
+    bySource,
   });
 }
