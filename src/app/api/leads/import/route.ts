@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createLead } from "@/lib/repo/leads";
+import { createLead, findDuplicateLead } from "@/lib/repo/leads";
 import { addEvent } from "@/lib/repo/events";
 import { getSession } from "@/lib/auth/session";
 import type { Mode } from "@/lib/types";
@@ -63,6 +63,12 @@ export async function POST(req: NextRequest) {
     }
     const modeRaw = modeIdx >= 0 ? cols[modeIdx]?.toUpperCase() : "";
     const mode: Mode = modeRaw === "MODO_2" ? "MODO_2" : "MODO_1";
+
+    const dup = findDuplicateLead(session.userId, { whatsapp, phone, instagram });
+    if (dup) {
+      errors.push(`Linha ${i + 1}: duplicado de "${dup.name}", ignorada.`);
+      continue;
+    }
 
     const lead = createLead(session.userId, {
       name,

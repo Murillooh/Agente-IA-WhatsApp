@@ -140,6 +140,44 @@ export function deleteLead(id: string, userId: string): void {
   db.prepare("DELETE FROM leads WHERE id = ? AND user_id = ?").run(id, userId);
 }
 
+function normalizePhone(v: string | null | undefined): string | null {
+  if (!v) return null;
+  const digits = v.replace(/\D/g, "");
+  return digits || null;
+}
+
+function normalizeInstagram(v: string | null | undefined): string | null {
+  if (!v) return null;
+  const t = v.trim().replace(/^@/, "").toLowerCase();
+  return t || null;
+}
+
+/** Procura um lead já cadastrado (dessa conta) com o mesmo WhatsApp,
+ * telefone ou Instagram — compara telefone/WhatsApp cruzado (um pode ter
+ * ficado salvo no campo errado) e Instagram sem "@"/maiúscula. Usado no
+ * cadastro manual e na importação CSV pra evitar duplicado. */
+export function findDuplicateLead(
+  userId: string,
+  input: { whatsapp?: string | null; phone?: string | null; instagram?: string | null }
+): Lead | null {
+  const phoneCandidates = [normalizePhone(input.whatsapp), normalizePhone(input.phone)].filter(
+    (v): v is string => v !== null
+  );
+  const ig = normalizeInstagram(input.instagram);
+  if (phoneCandidates.length === 0 && !ig) return null;
+
+  for (const lead of listLeads(userId)) {
+    if (ig && normalizeInstagram(lead.instagram) === ig) return lead;
+    if (phoneCandidates.length > 0) {
+      const leadPhones = [normalizePhone(lead.whatsapp), normalizePhone(lead.phone)].filter(
+        (v): v is string => v !== null
+      );
+      if (leadPhones.some((lp) => phoneCandidates.includes(lp))) return lead;
+    }
+  }
+  return null;
+}
+
 export function countLeadsByStatus(userId: string, range?: DateRange): Record<LeadStatus, number> {
   const params: unknown[] = [userId];
   const sql =

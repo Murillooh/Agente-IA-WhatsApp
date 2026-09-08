@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createLead, listLeads } from "@/lib/repo/leads";
+import { createLead, findDuplicateLead, listLeads } from "@/lib/repo/leads";
 import { addEvent } from "@/lib/repo/events";
 import { getSession } from "@/lib/auth/session";
 import type { Mode } from "@/lib/types";
@@ -19,6 +19,18 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   if (!body?.name) {
     return NextResponse.json({ error: "Nome é obrigatório." }, { status: 400 });
+  }
+
+  const dup = findDuplicateLead(session.userId, {
+    whatsapp: body.whatsapp || null,
+    phone: body.phone || null,
+    instagram: body.instagram || null,
+  });
+  if (dup) {
+    return NextResponse.json(
+      { error: `Já existe um lead com esse contato: ${dup.name}.` },
+      { status: 409 }
+    );
   }
 
   const mode: Mode = body.mode === "MODO_2" ? "MODO_2" : "MODO_1";
