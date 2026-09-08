@@ -3,8 +3,20 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Upload, Download, PhoneCall, Loader2, Users, Search, X } from "lucide-react";
+import {
+  Plus,
+  Upload,
+  Download,
+  PhoneCall,
+  Loader2,
+  Users,
+  Search,
+  X,
+  LayoutList,
+  Columns3,
+} from "lucide-react";
 import { StatusBadge, ModeBadge } from "@/components/Badges";
+import { KanbanView } from "./KanbanView";
 import type { Lead, LeadStatus, Mode } from "@/lib/types";
 import { MODE_LABELS, STATUS_LABELS } from "@/lib/types";
 
@@ -14,6 +26,7 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
   const [showImport, setShowImport] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [running, setRunning] = useState(false);
+  const [view, setView] = useState<"list" | "kanban">("list");
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<LeadStatus | "ALL">("ALL");
@@ -150,6 +163,28 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
             <X size={14} /> Limpar
           </button>
         )}
+        <div className="ml-auto flex items-center gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
+          <button
+            onClick={() => setView("list")}
+            className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+              view === "list"
+                ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
+                : "text-slate-500 dark:text-slate-400"
+            }`}
+          >
+            <LayoutList size={14} /> Lista
+          </button>
+          <button
+            onClick={() => setView("kanban")}
+            className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+              view === "kanban"
+                ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
+                : "text-slate-500 dark:text-slate-400"
+            }`}
+          >
+            <Columns3 size={14} /> Kanban
+          </button>
+        </div>
       </div>
 
       {selected.size > 0 && (
@@ -164,6 +199,9 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
         </div>
       )}
 
+      {view === "kanban" ? (
+        <KanbanView leads={filteredLeads} onChanged={() => router.refresh()} />
+      ) : (
       <div className="card overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-slate-100 text-xs font-medium uppercase tracking-wide text-slate-400 dark:border-slate-800 dark:text-slate-500">
@@ -247,6 +285,7 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
           </tbody>
         </table>
       </div>
+      )}
 
       {showAdd && <AddLeadModal onClose={() => setShowAdd(false)} onDone={() => router.refresh()} />}
       {showImport && (
