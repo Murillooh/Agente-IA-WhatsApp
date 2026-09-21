@@ -42,10 +42,10 @@ export function AuthInfoPanel() {
   }, []);
 
   return (
-    <div className="relative hidden overflow-hidden bg-[#020617] lg:flex lg:flex-col lg:justify-center lg:items-center lg:px-14 lg:py-12">
+    <div className="relative hidden overflow-hidden bg-[#050505] lg:flex lg:flex-col lg:justify-center lg:items-center lg:px-14 lg:py-12">
       {/* Animated Deep Brand Gradient Background */}
       <motion.div 
-        className="absolute inset-0 bg-gradient-to-br from-[#0f172a] via-[#020617] to-black"
+        className="absolute inset-0 bg-gradient-to-br from-[#1a1500] via-[#050505] to-black"
         animate={{
           backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
         }}
@@ -61,12 +61,12 @@ export function AuthInfoPanel() {
 
       {/* Ambient glowing orbs */}
       <motion.div
-        className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px]"
+        className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#d4af37]/10 rounded-full blur-[120px]"
         animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
-        className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px]"
+        className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#facc15]/5 rounded-full blur-[120px]"
         animate={{ scale: [1.1, 1, 1.1], opacity: [0.4, 0.2, 0.4] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
       />
@@ -84,7 +84,7 @@ export function AuthInfoPanel() {
         >
           {/* Subtle glow behind the phone */}
           <motion.div 
-            className="absolute inset-4 rounded-[50px] bg-green-500/20 blur-[40px]"
+            className="absolute inset-4 rounded-[50px] bg-[#facc15]/10 blur-[40px]"
             animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.8, 0.4] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           />
