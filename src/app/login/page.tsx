@@ -1,38 +1,10 @@
 import type { Metadata } from "next";
-import { Target } from "lucide-react";
-import { AuthInfoPanel } from "@/components/AuthInfoPanel";
-import { LoginForm } from "./LoginForm";
+import { AnimatedAuth } from "@/components/AnimatedAuth";
 
 export const metadata: Metadata = {
   title: "Entrar — MeetCloser",
 };
 
 export default function LoginPage() {
-  return (
-    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
-      <div className="flex items-center justify-center px-6 py-12 sm:px-10">
-        <div className="w-full max-w-sm">
-          <div className="mb-8 flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm">
-              <Target size={18} strokeWidth={2.25} />
-            </div>
-            <p className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
-              MeetCloser
-            </p>
-          </div>
-
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Entrar
-          </h1>
-          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-            Acesse sua conta pra continuar a prospecção.
-          </p>
-
-          <LoginForm />
-        </div>
-      </div>
-
-      <AuthInfoPanel />
-    </div>
-  );
+  return <AnimatedAuth initialMode="login" />;
 }
