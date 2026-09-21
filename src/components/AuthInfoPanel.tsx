@@ -210,11 +210,6 @@ export function AuthInfoPanel() {
               transition={{ duration: 0.6, ease: "backOut" }}
               className="absolute flex flex-col items-center w-full"
             >
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-5 h-5 text-indigo-400" />
-                <span className="text-indigo-300 font-semibold uppercase tracking-widest text-xs">MeetCloser AI</span>
-                <Sparkles className="w-5 h-5 text-indigo-400" />
-              </div>
               <h2 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-white drop-shadow-lg mb-4">
                 {phrases[index].title}
               </h2>
