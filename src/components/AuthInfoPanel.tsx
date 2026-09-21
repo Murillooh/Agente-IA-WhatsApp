@@ -1,71 +1,70 @@
 "use client";
 
-import { Users, PhoneCall, LayoutDashboard } from "lucide-react";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
-// Variantes de animação para stagger
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.2,
-    },
-  },
-};
+const phrases = [
+  "A próxima geração",
+  "de automação",
+  "para fechar reuniões",
+];
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    transition: { type: "spring", stiffness: 100, damping: 15 }
-  },
-};
-
-// Painel direito compartilhado entre /login e /signup — branding +
-// destaques do sistema.
 export function AuthInfoPanel() {
-  return (
-    <div className="relative hidden overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 lg:flex lg:flex-col lg:justify-center lg:px-14 lg:py-12">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-25 [background-image:radial-gradient(circle_at_20%_20%,white,transparent_35%),radial-gradient(circle_at_80%_65%,white,transparent_30%)]"
-      />
-      
-      <motion.div 
-        className="relative"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.h2 variants={itemVariants} className="text-3xl font-bold tracking-tight text-white">
-          Fechar reuniões, no automático
-        </motion.h2>
-        <motion.p variants={itemVariants} className="mt-3 max-w-md text-sm leading-relaxed text-indigo-100">
-          Prospecção por WhatsApp, Instagram e ligação com IA de voz — tudo
-          registrado numa timeline até a reunião ser agendada.
-        </motion.p>
+  const [index, setIndex] = useState(0);
 
-        <motion.ul className="mt-10 space-y-6">
-          <Feature
-            icon={Users}
-            title="Leads em um só lugar"
-            desc="Cadastro manual ou importação em massa via CSV, com busca e filtros."
-          />
-          <Feature
-            icon={PhoneCall}
-            title="Disparo em lote"
-            desc="Modo 2 liga pra vários leads ao mesmo tempo, com IA de voz."
-          />
-          <Feature
-            icon={LayoutDashboard}
-            title="Funil visual"
-            desc="Dashboard com funil de status e próximas reuniões, tudo em tempo real."
-          />
-        </motion.ul>
-      </motion.div>
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % phrases.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="relative hidden overflow-hidden bg-[#ff4d00] lg:flex lg:flex-col lg:justify-center lg:items-center lg:px-14 lg:py-12">
+      {/* Vibrant Gradient Background inspired by the video */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#ff7a00] via-[#ff4d00] to-[#e62e00]" />
+      
+      {/* Noise texture overlay for premium feel */}
+      <div 
+        className="absolute inset-0 opacity-[0.03] mix-blend-overlay"
+        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+      />
+
+      {/* Massive floating glass shape */}
+      <motion.div
+        className="absolute w-[120%] h-[120%] rounded-[120px] bg-white/20 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(255,255,255,0.1)] border border-white/30"
+        initial={{ y: "100%", x: "-50%", rotate: 20 }}
+        animate={{
+          y: ["60%", "10%", "60%"],
+          x: ["-30%", "-10%", "-30%"],
+          rotate: [25, 10, 25],
+        }}
+        transition={{
+          duration: 25,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        style={{
+          transformOrigin: "center center",
+          left: 0,
+          bottom: 0,
+        }}
+      />
+
+      <div className="relative z-10 flex items-center justify-center text-center h-40">
+        <AnimatePresence mode="wait">
+          <motion.h2
+            key={index}
+            initial={{ opacity: 0, y: 40, filter: "blur(12px)", scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
+            exit={{ opacity: 0, y: -40, filter: "blur(12px)", scale: 1.05 }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute text-5xl font-semibold tracking-tight text-white drop-shadow-sm"
+          >
+            {phrases[index]}
+          </motion.h2>
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
