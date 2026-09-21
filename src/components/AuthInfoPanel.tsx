@@ -92,7 +92,7 @@ export function AuthInfoPanel() {
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           >
              <img 
-               src="/mascot.jpg" 
+               src="/mascot.jpg?v=2" 
                alt="AI Mascot" 
                className="w-full h-full object-cover"
              />
