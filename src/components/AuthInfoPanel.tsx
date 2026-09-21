@@ -76,7 +76,7 @@ export function AuthInfoPanel() {
         
         {/* Floating iPhone Mockup */}
         <motion.div
-          className="relative w-[280px] h-[580px] mb-12"
+          className="relative w-[340px] h-[700px] mb-12"
           animate={{
             y: ["-8px", "8px", "-8px"],
           }}
