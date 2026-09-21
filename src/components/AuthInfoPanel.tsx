@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { MessageCircle, Zap, CalendarCheck } from "lucide-react";
 
 const phrases = [
-  "A próxima geração",
-  "de automação",
-  "para fechar reuniões",
+  { text: "Prospecção inteligente", icon: <Zap className="w-8 h-8 text-indigo-300 mb-4 mx-auto" /> },
+  { text: "Atendimento 24 horas", icon: <MessageCircle className="w-8 h-8 text-indigo-300 mb-4 mx-auto" /> },
+  { text: "Mais reuniões fechadas", icon: <CalendarCheck className="w-8 h-8 text-indigo-300 mb-4 mx-auto" /> },
 ];
 
 export function AuthInfoPanel() {
@@ -15,54 +16,72 @@ export function AuthInfoPanel() {
   useEffect(() => {
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % phrases.length);
-    }, 3000);
+    }, 3500);
     return () => clearInterval(timer);
   }, []);
 
   return (
-    <div className="relative hidden overflow-hidden bg-[#ff4d00] lg:flex lg:flex-col lg:justify-center lg:items-center lg:px-14 lg:py-12">
-      {/* Vibrant Gradient Background inspired by the video */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#ff7a00] via-[#ff4d00] to-[#e62e00]" />
+    <div className="relative hidden overflow-hidden bg-indigo-950 lg:flex lg:flex-col lg:justify-center lg:items-center lg:px-14 lg:py-12">
+      {/* Animated Deep Brand Gradient Background */}
+      <motion.div 
+        className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-violet-700 to-indigo-900"
+        animate={{
+          backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
+        }}
+        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        style={{ backgroundSize: "200% 200%" }}
+      />
       
       {/* Noise texture overlay for premium feel */}
       <div 
-        className="absolute inset-0 opacity-[0.03] mix-blend-overlay"
+        className="absolute inset-0 opacity-[0.04] mix-blend-overlay"
         style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
       />
 
-      {/* Massive floating glass shape */}
+      {/* Floating Glass Shapes - Modern UI Elements */}
+      {/* Shape 1: Top Right */}
       <motion.div
-        className="absolute w-[120%] h-[120%] rounded-[120px] bg-white/20 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(255,255,255,0.1)] border border-white/30"
-        initial={{ y: "100%", x: "-50%", rotate: 20 }}
+        className="absolute w-[300px] h-[300px] rounded-full bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl"
         animate={{
-          y: ["60%", "10%", "60%"],
-          x: ["-30%", "-10%", "-30%"],
-          rotate: [25, 10, 25],
+          y: ["-10%", "10%", "-10%"],
+          x: ["10%", "-5%", "10%"],
+          scale: [1, 1.05, 1],
         }}
-        transition={{
-          duration: 25,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        style={{
-          transformOrigin: "center center",
-          left: 0,
-          bottom: 0,
-        }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        style={{ top: "-5%", right: "-5%" }}
       />
 
-      <div className="relative z-10 flex items-center justify-center text-center h-40">
+      {/* Shape 2: Bottom Left - Chat Bubble Style */}
+      <motion.div
+        className="absolute w-[400px] h-[250px] rounded-[60px] rounded-bl-xl bg-white/10 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.2)] border border-white/20"
+        animate={{
+          y: ["10%", "-10%", "10%"],
+          x: ["-5%", "5%", "-5%"],
+          rotate: [-5, 5, -5],
+        }}
+        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        style={{ bottom: "10%", left: "-10%" }}
+      />
+
+      {/* Main Content Area */}
+      <div className="relative z-10 flex flex-col items-center justify-center text-center h-64 w-full">
         <AnimatePresence mode="wait">
-          <motion.h2
+          <motion.div
             key={index}
-            initial={{ opacity: 0, y: 40, filter: "blur(12px)", scale: 0.95 }}
+            initial={{ opacity: 0, y: 30, filter: "blur(8px)", scale: 0.95 }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
-            exit={{ opacity: 0, y: -40, filter: "blur(12px)", scale: 1.05 }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute text-5xl font-semibold tracking-tight text-white drop-shadow-sm"
+            exit={{ opacity: 0, y: -30, filter: "blur(8px)", scale: 1.05 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute flex flex-col items-center"
           >
-            {phrases[index]}
-          </motion.h2>
+            {phrases[index].icon}
+            <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-white drop-shadow-md">
+              {phrases[index].text}
+            </h2>
+            <p className="mt-4 text-indigo-200 text-sm font-medium tracking-wide">
+              MeetCloser IA Agent
+            </p>
+          </motion.div>
         </AnimatePresence>
       </div>
     </div>
