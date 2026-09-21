@@ -115,63 +115,53 @@ export function AuthInfoPanel() {
                 </div>
              </div>
 
-             {/* Phone Header (WhatsApp style) */}
-             <div className="bg-[#1f2c34] px-4 pt-14 pb-3 flex items-center gap-3 z-10 relative">
-               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-green-400 to-emerald-600 flex items-center justify-center shrink-0 border border-white/10">
+             {/* Phone Header (iMessage style) */}
+             <div className="bg-[#1c1c1e]/80 backdrop-blur-md px-4 pt-12 pb-2 flex flex-col items-center z-10 relative border-b border-white/10">
+               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shrink-0 mb-1">
                   <Sparkles className="w-5 h-5 text-white" />
                </div>
-               <div className="flex flex-col text-left">
-                 <span className="text-[#e9edef] text-[15px] font-semibold">Assistente IA</span>
-                 <span className="text-gray-400 text-[11px] flex items-center gap-1">
-                   online
-                 </span>
+               <div className="flex items-center gap-1">
+                 <span className="text-white text-[13px] font-semibold">Assistente IA</span>
+                 <svg viewBox="0 0 24 24" className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                </div>
              </div>
 
-             {/* Phone Chat Background (WhatsApp dark mode) */}
-             <div 
-                className="flex-1 bg-[#0b141a] p-3 flex flex-col gap-2 overflow-hidden relative"
-                style={{
-                  backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' viewBox=\\'0 0 60 60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'none\\' fill-rule=\\'evenodd\\'%3E%3Cg fill=\\'%23ffffff\\' fill-opacity=\\'0.02\\'%3E%3Cpath d=\\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"
-                }}
-             >
+             {/* Phone Chat Background (iMessage dark mode) */}
+             <div className="flex-1 bg-black p-3 flex flex-col gap-3 overflow-hidden relative pt-6">
                 {/* Chat Messages */}
                 <AnimatePresence>
-                  {chatMessages.map((msg) => (
-                    visibleMessages.includes(msg.id) && (
+                  {chatMessages.map((msg) => {
+                    const isLeft = msg.isBot;
+                    return visibleMessages.includes(msg.id) && (
                       <motion.div
                         key={msg.id}
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
                         transition={{ duration: 0.3 }}
-                        className={`max-w-[85%] rounded-[14px] px-3 py-2 text-[13px] shadow-[0_1px_1px_rgba(0,0,0,0.2)] relative ${
-                          msg.isBot 
-                            ? "bg-[#005c4b] text-[#e9edef] self-start rounded-tl-none" 
-                            : "bg-[#202c33] text-[#e9edef] self-end rounded-tr-none"
+                        className={`max-w-[75%] px-4 py-2.5 text-[14px] leading-relaxed relative ${
+                          isLeft 
+                            ? "bg-[#262628] text-white self-start rounded-2xl rounded-bl-sm" 
+                            : "bg-[#0a84ff] text-white self-end rounded-2xl rounded-br-sm"
                         }`}
                       >
-                        {/* Tail triangle */}
-                        <div className={`absolute top-0 w-3 h-3 ${msg.isBot ? "-left-2 bg-[#005c4b] [clip-path:polygon(100%_0,0_0,100%_100%)]" : "-right-2 bg-[#202c33] [clip-path:polygon(0_0,100%_0,0_100%)]"}`} />
-                        
-                        <span className="leading-snug block">{msg.text}</span>
-                        <div className="text-[10px] text-white/50 mt-1 flex justify-end items-center gap-1 float-right ml-2 mt-2">
-                          14:0{msg.id}
-                          {msg.isBot && <CheckCheck className="w-3.5 h-3.5 text-sky-400" />}
-                        </div>
+                        {msg.text}
                       </motion.div>
                     )
-                  ))}
+                  })}
                 </AnimatePresence>
              </div>
              
-             {/* Chat Input area (WhatsApp style) */}
-             <div className="bg-[#1f2c34] px-2 py-3 flex gap-2 items-end pb-8">
-                <div className="flex-1 bg-[#2a3942] rounded-2xl min-h-[40px] px-4 flex items-center text-[13px] text-gray-400 shadow-sm">
-                  Mensagem
+             {/* Chat Input area (iMessage style) */}
+             <div className="bg-black px-3 py-3 flex gap-3 items-end pb-8">
+                <div className="text-[#0a84ff] pb-1.5 shrink-0">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                 </div>
-                <div className="w-10 h-10 bg-[#00a884] rounded-full flex items-center justify-center shrink-0">
-                  <svg viewBox="0 0 24 24" width="18" height="18" className="fill-white translate-x-[-1px]"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
+                <div className="flex-1 bg-[#1c1c1e] rounded-full min-h-[36px] px-4 py-1.5 flex items-center justify-between border border-white/10">
+                  <span className="text-[14px] text-gray-500">iMessage</span>
+                  <div className="w-7 h-7 bg-[#0a84ff] rounded-full flex items-center justify-center shrink-0">
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                  </div>
                 </div>
              </div>
              
