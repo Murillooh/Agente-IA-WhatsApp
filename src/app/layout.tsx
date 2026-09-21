@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import "./globals.css";
 
@@ -11,13 +12,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="pt-BR" className="h-full antialiased" suppressHydrationWarning>
       <head>
-        <script
-          // Aplica a classe .dark antes do primeiro paint, senão a página
-          // pisca clara e troca pra escura depois de hidratar.
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("theme");var d=t?t==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("dark",d);}catch(e){}})()`,
-          }}
-        />
+        <Script id="theme-initializer" strategy="beforeInteractive">
+          {`(function(){try{var t=localStorage.getItem("theme");var d=t?t==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("dark",d);}catch(e){}})()`}
+        </Script>
       </head>
       <body className="min-h-full">
         {children}
