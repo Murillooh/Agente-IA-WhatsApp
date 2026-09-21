@@ -129,13 +129,13 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
               {isLogin ? (
                 <form onSubmit={submitLogin} className="flex flex-col w-full h-full">
                   <div className="text-center mb-8">
-                    <h2 className="text-3xl font-semibold text-white tracking-tight mb-2">Welcome Back</h2>
-                    <p className="text-sm text-gray-400">Please enter your details to access your secure account</p>
+                    <h2 className="text-3xl font-semibold text-white tracking-tight mb-2">Bem-vindo de volta</h2>
+                    <p className="text-sm text-gray-400">Insira seus dados para acessar sua conta com segurança</p>
                   </div>
 
                   <div className="space-y-5 flex-grow">
                     <div>
-                      <label className="block text-xs text-gray-400 ml-1 mb-1.5">Email Address</label>
+                      <label className="block text-xs text-gray-400 ml-1 mb-1.5">E-mail</label>
                       <div className="relative">
                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                         <input
@@ -144,13 +144,13 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
                           className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#facc15] focus:border-[#facc15] transition-all"
-                          placeholder="name@domain.com"
+                          placeholder="seu@email.com"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs text-gray-400 ml-1 mb-1.5">Password</label>
+                      <label className="block text-xs text-gray-400 ml-1 mb-1.5">Senha</label>
                       <div className="relative">
                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                         <input
@@ -174,9 +174,9 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
                     <div className="flex items-center justify-between text-xs mt-2">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" className="rounded bg-white/5 border-white/10 text-[#facc15] focus:ring-[#facc15] focus:ring-offset-0" />
-                        <span className="text-gray-400">Remember me</span>
+                        <span className="text-gray-400">Lembrar de mim</span>
                       </label>
-                      <a href="#" className="text-gray-400 hover:text-white transition-colors">Forgot password?</a>
+                      <a href="#" className="text-gray-400 hover:text-white transition-colors">Esqueceu a senha?</a>
                     </div>
                     {error && <p className="text-xs text-red-400 text-center">{error}</p>}
                   </div>
@@ -187,16 +187,16 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
                       disabled={loading}
                       className="w-full bg-gradient-to-r from-[#facc15] to-[#d4af37] text-black font-semibold rounded-xl py-3.5 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
                     >
-                      {loading ? "Signing In..." : "Sign In"}
+                      {loading ? "Entrando..." : "Entrar"}
                       {!loading && <ArrowRight className="w-5 h-5" />}
                     </button>
 
 
 
                     <p className="mt-6 text-center text-xs text-gray-400">
-                      Don't have an account?{" "}
+                      Não tem uma conta?{" "}
                       <button type="button" onClick={() => handleSwitchMode(false)} className="text-[#facc15] font-medium hover:underline">
-                        Sign Up
+                        Criar Conta
                       </button>
                     </p>
                   </div>
@@ -204,13 +204,13 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
               ) : (
                 <form onSubmit={submitSignup} className="flex flex-col w-full h-full">
                   <div className="text-center mb-6">
-                    <h2 className="text-3xl font-semibold text-white tracking-tight mb-2">Create Account</h2>
-                    <p className="text-sm text-gray-400">Please fill the details below to create your workspace</p>
+                    <h2 className="text-3xl font-semibold text-white tracking-tight mb-2">Criar Conta</h2>
+                    <p className="text-sm text-gray-400">Preencha os dados abaixo para criar sua conta</p>
                   </div>
 
                   <div className="space-y-4 flex-grow">
                     <div>
-                      <label className="block text-xs text-gray-400 ml-1 mb-1.5">Full Name</label>
+                      <label className="block text-xs text-gray-400 ml-1 mb-1.5">Nome Completo</label>
                       <div className="relative">
                         <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                         <input
@@ -225,7 +225,7 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
                     </div>
 
                     <div>
-                      <label className="block text-xs text-gray-400 ml-1 mb-1.5">Email Address</label>
+                      <label className="block text-xs text-gray-400 ml-1 mb-1.5">E-mail</label>
                       <div className="relative">
                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                         <input
@@ -234,14 +234,14 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
                           className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#facc15] focus:border-[#facc15] transition-all"
-                          placeholder="name@domain.com"
+                          placeholder="seu@email.com"
                         />
                       </div>
                     </div>
 
                     <div className="flex gap-4">
                       <div className="flex-1">
-                        <label className="block text-xs text-gray-400 ml-1 mb-1.5">Password</label>
+                        <label className="block text-xs text-gray-400 ml-1 mb-1.5">Senha</label>
                         <div className="relative">
                           <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                           <input
@@ -255,7 +255,7 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
                         </div>
                       </div>
                       <div className="flex-1">
-                        <label className="block text-xs text-gray-400 ml-1 mb-1.5">Confirm Password</label>
+                        <label className="block text-xs text-gray-400 ml-1 mb-1.5">Confirmar Senha</label>
                         <div className="relative">
                           <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                           <input
@@ -272,7 +272,7 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
 
                     <div className="flex items-start text-xs mt-2 gap-2">
                       <input type="checkbox" required className="mt-0.5 rounded bg-white/5 border-white/10 text-[#facc15] focus:ring-[#facc15] focus:ring-offset-0" />
-                      <span className="text-gray-400">I agree to the Terms & Privacy Policy</span>
+                      <span className="text-gray-400">Eu concordo com os Termos e Política de Privacidade</span>
                     </div>
                     {error && <p className="text-xs text-red-400 text-center">{error}</p>}
                   </div>
@@ -283,14 +283,14 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
                       disabled={loading}
                       className="w-full bg-gradient-to-r from-[#facc15] to-[#d4af37] text-black font-semibold rounded-xl py-3.5 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
                     >
-                      {loading ? "Creating Account..." : "Create Account"}
+                      {loading ? "Criando Conta..." : "Criar Conta"}
                       {!loading && <ArrowRight className="w-5 h-5" />}
                     </button>
 
                     <p className="mt-6 text-center text-xs text-gray-400">
-                      Already have an account?{" "}
+                      Já tem uma conta?{" "}
                       <button type="button" onClick={() => handleSwitchMode(true)} className="text-[#facc15] font-medium hover:underline">
-                        Sign In
+                        Entrar
                       </button>
                     </p>
                   </div>
