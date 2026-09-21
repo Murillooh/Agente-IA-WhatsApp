@@ -76,7 +76,7 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-[#0a0a0a] flex items-center justify-center overflow-hidden font-sans">
+    <div className="relative w-full h-full min-h-screen lg:min-h-full bg-[#0a0a0a] flex items-center justify-center overflow-hidden font-sans">
       {/* Background with abstract golden/copper waves */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#b8860b] rounded-full mix-blend-screen filter blur-[150px] opacity-20 animate-pulse" />
