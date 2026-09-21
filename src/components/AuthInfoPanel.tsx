@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Zap, CalendarCheck, Sparkles } from "lucide-react";
 import Image from "next/image";
-import mascotImg from "../../public/mascot.jpg";
+import phoneMascotImg from "../../public/phone_mascot.jpg";
 
 const phrases = [
   { 
@@ -67,37 +67,31 @@ export function AuthInfoPanel() {
       {/* Main Content Area */}
       <div className="relative z-10 flex flex-col items-center justify-center text-center w-full max-w-lg">
         
-        {/* Floating AI Mascot Hologram */}
+        {/* Floating Phone Mascot */}
         <motion.div
-          className="relative w-56 h-56 mb-12"
+          className="relative w-64 h-64 mb-8"
           animate={{
-            y: ["-15px", "15px", "-15px"],
+            y: ["-10px", "10px", "-10px"],
+            rotate: [-2, 2, -2]
           }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
         >
-          {/* Outer glowing rings */}
+          {/* Subtle glow behind the phone */}
           <motion.div 
-            className="absolute inset-0 rounded-full border-2 border-indigo-400/20 bg-indigo-500/5 backdrop-blur-md"
-            animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.8, 0.4], rotate: [0, 180, 360] }}
-            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-          />
-          <motion.div 
-            className="absolute inset-4 rounded-full border border-violet-400/30"
-            animate={{ rotate: [360, 180, 0] }}
-            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-4 rounded-[40px] bg-green-500/20 blur-[40px]"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.7, 0.4] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           />
           
-          {/* The Mascot Image (using imported image to force Turbopack compilation without needing a restart) */}
+          {/* The Phone Image */}
           <motion.div 
-            className="absolute inset-2 rounded-full overflow-hidden border-2 border-white/10 shadow-[0_0_40px_rgba(99,102,241,0.6)] bg-indigo-950/50"
-            animate={{ scale: [0.95, 1.05, 0.95] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute inset-0 rounded-[40px] overflow-hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
           >
              <Image 
-               src={mascotImg} 
-               alt="AI Mascot" 
+               src={phoneMascotImg} 
+               alt="AI Automation Phone" 
                fill
-               className="object-cover"
+               className="object-cover scale-[1.02]"
                priority
              />
           </motion.div>
