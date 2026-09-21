@@ -115,19 +115,31 @@ export function AuthInfoPanel() {
                 </div>
              </div>
 
-             {/* Phone Header (iMessage style) */}
-             <div className="bg-[#1c1c1e]/80 backdrop-blur-md px-4 pt-12 pb-2 flex flex-col items-center z-10 relative border-b border-white/10">
-               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shrink-0 mb-1">
-                  <Sparkles className="w-5 h-5 text-white" />
+             {/* Phone Header (WhatsApp iOS style) */}
+             <div className="bg-[#111111] px-4 pt-12 pb-2 flex items-center justify-between z-10 relative border-b border-white/5">
+               <div className="flex items-center gap-2">
+                 <div className="flex items-center text-[#0a84ff]">
+                   <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                   <span className="text-[17px] font-medium -ml-1">81</span>
+                 </div>
+                 <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shrink-0 ml-1">
+                    <Sparkles className="w-4 h-4 text-white" />
+                 </div>
+                 <span className="text-white text-[16px] font-semibold ml-1">Assistente IA</span>
                </div>
-               <div className="flex items-center gap-1">
-                 <span className="text-white text-[13px] font-semibold">Assistente IA</span>
-                 <svg viewBox="0 0 24 24" className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+               <div className="flex items-center gap-4 text-[#0a84ff]">
+                 <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15.6 11.6L22 7v10l-6.4-4.6v-1.8zM2 9c0-1.1.9-2 2-2h9c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V9z"/></svg>
+                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
                </div>
              </div>
 
-             {/* Phone Chat Background (iMessage dark mode) */}
-             <div className="flex-1 bg-black p-3 flex flex-col gap-3 overflow-hidden relative pt-6">
+             {/* Phone Chat Background (WhatsApp iOS dark mode) */}
+             <div 
+                className="flex-1 bg-[#0b141a] p-3 flex flex-col gap-1.5 overflow-hidden relative"
+                style={{
+                  backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' viewBox=\\'0 0 60 60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'none\\' fill-rule=\\'evenodd\\'%3E%3Cg fill=\\'%23ffffff\\' fill-opacity=\\'0.02\\'%3E%3Cpath d=\\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"
+                }}
+             >
                 {/* Chat Messages */}
                 <AnimatePresence>
                   {chatMessages.map((msg) => {
@@ -139,29 +151,46 @@ export function AuthInfoPanel() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
                         transition={{ duration: 0.3 }}
-                        className={`max-w-[75%] px-4 py-2.5 text-[14px] leading-relaxed relative ${
+                        className={`max-w-[80%] rounded-2xl px-3 py-1.5 text-[15px] shadow-[0_1px_1px_rgba(0,0,0,0.1)] relative ${
                           isLeft 
-                            ? "bg-[#262628] text-white self-start rounded-2xl rounded-bl-sm" 
-                            : "bg-[#0a84ff] text-white self-end rounded-2xl rounded-br-sm"
+                            ? "bg-[#202427] text-[#e9edef] self-start rounded-tl-sm" 
+                            : "bg-[#005c8a] text-white self-end rounded-tr-sm"
                         }`}
                       >
-                        {msg.text}
+                        {/* iOS style tails */}
+                        {isLeft ? (
+                           <svg viewBox="0 0 8 13" width="8" height="13" className="absolute top-0 -left-[7px] text-[#202427] fill-current"><path d="M1.533 3.568L8 12.193V1H2.812C1.042 1 .474 2.156 1.533 3.568z"></path></svg>
+                        ) : (
+                           <svg viewBox="0 0 8 13" width="8" height="13" className="absolute top-0 -right-[7px] text-[#005c8a] fill-current"><path d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z"></path></svg>
+                        )}
+                        
+                        <div className="flex flex-col">
+                          <span className="leading-snug">{msg.text}</span>
+                          <div className="text-[11px] text-white/60 flex justify-end items-center gap-1 -mt-1 float-right self-end translate-y-1">
+                            14:0{msg.id}
+                            {!isLeft && <CheckCheck className="w-4 h-4 text-[#34B7F1]" />}
+                          </div>
+                        </div>
                       </motion.div>
                     )
                   })}
                 </AnimatePresence>
              </div>
              
-             {/* Chat Input area (iMessage style) */}
-             <div className="bg-black px-3 py-3 flex gap-3 items-end pb-8">
-                <div className="text-[#0a84ff] pb-1.5 shrink-0">
-                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                </div>
-                <div className="flex-1 bg-[#1c1c1e] rounded-full min-h-[36px] px-4 py-1.5 flex items-center justify-between border border-white/10">
-                  <span className="text-[14px] text-gray-500">iMessage</span>
-                  <div className="w-7 h-7 bg-[#0a84ff] rounded-full flex items-center justify-center shrink-0">
-                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+             {/* Chat Input area (WhatsApp iOS style) */}
+             <div className="bg-[#111111] px-2 py-2 flex items-end gap-3 pb-8">
+                <button className="text-[#0a84ff] p-1.5 shrink-0">
+                  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div className="flex-1 bg-[#1c1c1e] rounded-full min-h-[36px] border border-white/10 px-3 py-1 flex items-center justify-between">
+                  <span className="text-[16px] text-gray-500 whitespace-nowrap overflow-hidden"></span>
+                  <div className="shrink-0 text-gray-400">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                   </div>
+                </div>
+                <div className="flex items-center gap-3 shrink-0 text-[#0a84ff] p-1.5 pb-2">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
                 </div>
              </div>
              
