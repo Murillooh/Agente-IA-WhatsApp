@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   }
 
   const days = Number(process.env.FOLLOWUP_DAYS) || 3;
-  const candidates = findLeadsAwaitingFollowUp(days);
+  const candidates = await findLeadsAwaitingFollowUp(days);
 
   const results = [];
   for (const c of candidates) {

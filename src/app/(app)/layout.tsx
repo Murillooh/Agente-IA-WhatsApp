@@ -4,7 +4,7 @@ import { isUserAdmin } from "@/lib/repo/users";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
-  const isAdmin = session ? isUserAdmin(session.userId) : false;
+  const isAdmin = session ? await isUserAdmin(session.userId) : false;
 
   return (
     <div className="flex min-h-screen">

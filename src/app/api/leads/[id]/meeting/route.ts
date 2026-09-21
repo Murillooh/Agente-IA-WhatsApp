@@ -18,7 +18,7 @@ export async function POST(
     return NextResponse.json({ error: "scheduledAt é obrigatório." }, { status: 400 });
   }
 
-  const meeting = upsertMeeting(session.userId, {
+  const meeting = await upsertMeeting(session.userId, {
     leadId: id,
     scheduledAt: body.scheduledAt,
     notes: body.notes ?? null,
@@ -26,8 +26,8 @@ export async function POST(
   if (!meeting) {
     return NextResponse.json({ error: "Lead não encontrado." }, { status: 404 });
   }
-  updateLeadStatus(id, session.userId, "REUNIAO_AGENDADA");
-  addEvent({
+  await updateLeadStatus(id, session.userId, "REUNIAO_AGENDADA");
+  await addEvent({
     leadId: id,
     channel: "SISTEMA",
     direction: "SAIDA",
@@ -49,13 +49,13 @@ export async function PATCH(
   if (!body?.status) {
     return NextResponse.json({ error: "status é obrigatório." }, { status: 400 });
   }
-  const meeting = updateMeetingStatus(id, session.userId, body.status);
+  const meeting = await updateMeetingStatus(id, session.userId, body.status);
   if (!meeting) {
     return NextResponse.json({ error: "Reunião não encontrada." }, { status: 404 });
   }
   if (body.status === "REALIZADA") {
-    updateLeadStatus(id, session.userId, "FECHADO");
-    addEvent({
+    await updateLeadStatus(id, session.userId, "FECHADO");
+    await addEvent({
       leadId: id,
       channel: "SISTEMA",
       direction: "SAIDA",
@@ -63,7 +63,7 @@ export async function PATCH(
     });
   }
   if (body.status === "CANCELADA") {
-    addEvent({
+    await addEvent({
       leadId: id,
       channel: "SISTEMA",
       direction: "SAIDA",

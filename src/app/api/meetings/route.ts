@@ -6,5 +6,5 @@ export async function GET() {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  return NextResponse.json(listMeetings(session.userId));
+  return NextResponse.json(await listMeetings(session.userId));
 }

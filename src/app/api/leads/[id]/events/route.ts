@@ -12,7 +12,7 @@ export async function GET(
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;
-  return NextResponse.json(listEventsForLead(id, session.userId));
+  return NextResponse.json(await listEventsForLead(id, session.userId));
 }
 
 // Permite registrar manualmente uma resposta do lead ou uma nota
@@ -25,7 +25,7 @@ export async function POST(
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;
-  if (!getLead(id, session.userId)) {
+  if (!(await getLead(id, session.userId))) {
     return NextResponse.json({ error: "Lead não encontrado." }, { status: 404 });
   }
 
@@ -33,7 +33,7 @@ export async function POST(
   if (!body?.content) {
     return NextResponse.json({ error: "Conteúdo é obrigatório." }, { status: 400 });
   }
-  const event = addEvent({
+  const event = await addEvent({
     leadId: id,
     channel: (body.channel as Channel) ?? "SISTEMA",
     direction: (body.direction as Direction) ?? "ENTRADA",

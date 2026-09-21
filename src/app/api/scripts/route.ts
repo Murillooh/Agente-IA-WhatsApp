@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createScript, listScripts } from "@/lib/repo/scripts";
 
 export async function GET() {
-  return NextResponse.json(listScripts());
+  return NextResponse.json(await listScripts());
 }
 
 export async function POST(req: NextRequest) {
@@ -13,6 +13,6 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-  const script = createScript(body);
+  const script = await createScript(body);
   return NextResponse.json(script, { status: 201 });
 }

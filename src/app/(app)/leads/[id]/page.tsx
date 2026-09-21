@@ -17,12 +17,12 @@ export default async function LeadDetailPage({
   if (!session) redirect("/login");
 
   const { id } = await params;
-  const lead = getLead(id, session.userId);
+  const lead = await getLead(id, session.userId);
   if (!lead) notFound();
 
-  const events = listEventsForLead(id, session.userId);
-  const meeting = getMeetingForLead(id, session.userId);
-  const tags = listTagsForLead(id, session.userId);
+  const events = await listEventsForLead(id, session.userId);
+  const meeting = await getMeetingForLead(id, session.userId);
+  const tags = await listTagsForLead(id, session.userId);
 
   return <LeadDetailClient lead={lead} events={events} meeting={meeting} tags={tags} />;
 }

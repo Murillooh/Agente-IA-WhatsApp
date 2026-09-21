@@ -11,10 +11,10 @@ export async function GET(
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;
-  if (!getLead(id, session.userId)) {
+  if (!(await getLead(id, session.userId))) {
     return NextResponse.json({ error: "Lead não encontrado." }, { status: 404 });
   }
-  return NextResponse.json(listTagsForLead(id, session.userId));
+  return NextResponse.json(await listTagsForLead(id, session.userId));
 }
 
 export async function POST(
@@ -31,7 +31,7 @@ export async function POST(
     return NextResponse.json({ error: "Tag não pode ser vazia." }, { status: 400 });
   }
 
-  const tag = addTag(id, session.userId, label);
+  const tag = await addTag(id, session.userId, label);
   if (!tag) return NextResponse.json({ error: "Lead não encontrado." }, { status: 404 });
   return NextResponse.json(tag, { status: 201 });
 }

@@ -25,15 +25,15 @@ export async function GET(req: NextRequest) {
     to: to ? `${to}T23:59:59.999Z` : undefined,
   };
 
-  const byStatus = countLeadsByStatus(userId, range);
-  const byMode = countLeadsByMode(userId, range);
-  const totalLeads = listLeads(userId, range).length;
-  const upcomingMeetings = countUpcomingMeetings(userId);
-  const meetings = listMeetings(userId)
+  const byStatus = await countLeadsByStatus(userId, range);
+  const byMode = await countLeadsByMode(userId, range);
+  const totalLeads = (await listLeads(userId, range)).length;
+  const upcomingMeetings = await countUpcomingMeetings(userId);
+  const meetings = (await listMeetings(userId))
     .filter((m) => m.status === "AGENDADA")
     .slice(0, 5);
-  const avgDaysToClose = averageDaysToClose(userId, range);
-  const bySource = conversionBySource(userId, range);
+  const avgDaysToClose = await averageDaysToClose(userId, range);
+  const bySource = await conversionBySource(userId, range);
 
   return NextResponse.json({
     totalLeads,

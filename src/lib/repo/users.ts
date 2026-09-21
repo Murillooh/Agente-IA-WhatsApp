@@ -1,5 +1,4 @@
-import { randomUUID } from "crypto";
-import { db } from "@/lib/db";
+import prisma from "@/lib/prisma";
 
 export interface User {
   id: string;
@@ -9,78 +8,74 @@ export interface User {
   createdAt: string;
 }
 
-interface UserRow {
-  id: string;
-  username: string;
-  name: string;
-  password_hash: string;
-  is_admin: number;
-  created_at: string;
-}
-
-function rowToUser(r: UserRow): User {
+function rowToUser(row: any): User {
   return {
-    id: r.id,
-    username: r.username,
-    name: r.name,
-    isAdmin: r.is_admin === 1,
-    createdAt: r.created_at,
+    id: row.id,
+    username: row.username,
+    name: row.name,
+    isAdmin: row.isAdmin,
+    createdAt: row.createdAt.toISOString(),
   };
 }
 
 /** Só pra gate de tela/rota de admin — não devolver isAdmin de outra conta pro cliente sem necessidade. */
-export function isUserAdmin(id: string): boolean {
-  const row = db.prepare("SELECT is_admin FROM users WHERE id = ?").get(id) as
-    | { is_admin: number }
-    | undefined;
-  return row?.is_admin === 1;
+export async function isUserAdmin(id: string): Promise<boolean> {
+  const row = await prisma.user.findUnique({
+    where: { id },
+    select: { isAdmin: true },
+  });
+  return row?.isAdmin === true;
 }
 
 /** Lista todas as contas — usado só na tela de administração (gate por isUserAdmin no chamador). */
-export function listUsers(): User[] {
-  const rows = db.prepare("SELECT * FROM users ORDER BY created_at ASC").all() as UserRow[];
+export async function listUsers(): Promise<User[]> {
+  const rows = await prisma.user.findMany({
+    orderBy: { createdAt: "asc" },
+  });
   return rows.map(rowToUser);
 }
 
 /** Inclui o hash da senha — só pra uso interno do fluxo de login, nunca devolver isso pro cliente. */
-export function findUserByUsernameWithHash(
+export async function findUserByUsernameWithHash(
   username: string
-): (User & { passwordHash: string }) | null {
-  const row = db.prepare("SELECT * FROM users WHERE username = ?").get(username) as
-    | UserRow
-    | undefined;
+): Promise<(User & { passwordHash: string }) | null> {
+  const row = await prisma.user.findUnique({
+    where: { username },
+  });
   if (!row) return null;
-  return { ...rowToUser(row), passwordHash: row.password_hash };
+  return { ...rowToUser(row), passwordHash: row.passwordHash };
 }
 
-export function getUserById(id: string): User | null {
-  const row = db.prepare("SELECT * FROM users WHERE id = ?").get(id) as UserRow | undefined;
+export async function getUserById(id: string): Promise<User | null> {
+  const row = await prisma.user.findUnique({
+    where: { id },
+  });
   return row ? rowToUser(row) : null;
 }
 
 /** Mesmo cuidado de findUserByUsernameWithHash — hash é só pra conferir a senha atual. */
-export function getUserByIdWithHash(id: string): (User & { passwordHash: string }) | null {
-  const row = db.prepare("SELECT * FROM users WHERE id = ?").get(id) as UserRow | undefined;
-  if (!row) return null;
-  return { ...rowToUser(row), passwordHash: row.password_hash };
-}
-
-export function updatePasswordHash(id: string, passwordHash: string): void {
-  db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(passwordHash, id);
-}
-
-export function createUser(input: { username: string; name: string; passwordHash: string }): User {
-  const id = randomUUID();
-  const now = new Date().toISOString();
-  db.prepare(
-    `INSERT INTO users (id, username, name, password_hash, created_at)
-     VALUES (@id, @username, @name, @password_hash, @now)`
-  ).run({
-    id,
-    username: input.username,
-    name: input.name,
-    password_hash: input.passwordHash,
-    now,
+export async function getUserByIdWithHash(id: string): Promise<(User & { passwordHash: string }) | null> {
+  const row = await prisma.user.findUnique({
+    where: { id },
   });
-  return { id, username: input.username, name: input.name, isAdmin: false, createdAt: now };
+  if (!row) return null;
+  return { ...rowToUser(row), passwordHash: row.passwordHash };
+}
+
+export async function updatePasswordHash(id: string, passwordHash: string): Promise<void> {
+  await prisma.user.update({
+    where: { id },
+    data: { passwordHash },
+  });
+}
+
+export async function createUser(input: { username: string; name: string; passwordHash: string }): Promise<User> {
+  const row = await prisma.user.create({
+    data: {
+      username: input.username,
+      name: input.name,
+      passwordHash: input.passwordHash,
+    },
+  });
+  return rowToUser(row);
 }

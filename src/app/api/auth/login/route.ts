@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Usuário e senha são obrigatórios." }, { status: 400 });
   }
 
-  const user = findUserByUsernameWithHash(username);
+  const user = await findUserByUsernameWithHash(username);
   if (!user || !verifyPassword(password, user.passwordHash)) {
     return NextResponse.json({ error: "Usuário ou senha inválidos." }, { status: 401 });
   }

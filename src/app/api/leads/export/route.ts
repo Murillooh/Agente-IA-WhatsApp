@@ -13,7 +13,7 @@ export async function GET() {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const leads = listLeads(session.userId);
+  const leads = await listLeads(session.userId);
   const header = ["name", "phone", "whatsapp", "instagram", "source", "mode", "status"];
   const lines = [header.join(",")];
   for (const l of leads) {

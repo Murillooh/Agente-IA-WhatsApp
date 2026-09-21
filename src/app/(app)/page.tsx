@@ -55,16 +55,18 @@ export default async function DashboardPage({
   };
   const periodActive = Boolean(range.from || range.to);
 
-  const totalLeads = listLeads(userId, range).length;
-  const byStatus = countLeadsByStatus(userId, range);
-  const byMode = countLeadsByMode(userId, range);
-  const upcomingMeetings = countUpcomingMeetings(userId);
-  const nextMeetings = listMeetings(userId)
+  const leads = await listLeads(userId, range);
+  const totalLeads = leads.length;
+  const byStatus = await countLeadsByStatus(userId, range);
+  const byMode = await countLeadsByMode(userId, range);
+  const upcomingMeetings = await countUpcomingMeetings(userId);
+  const meetings = await listMeetings(userId);
+  const nextMeetings = meetings
     .filter((m) => m.status === "AGENDADA")
     .slice(0, 5);
-  const recentEvents = listRecentEvents(userId, 6);
-  const avgDays = averageDaysToClose(userId, range);
-  const bySource = conversionBySource(userId, range);
+  const recentEvents = await listRecentEvents(userId, 6);
+  const avgDays = await averageDaysToClose(userId, range);
+  const bySource = await conversionBySource(userId, range);
 
   const maxCount = Math.max(1, ...FUNNEL_ORDER.map((s) => byStatus[s]));
   const conversionRate =

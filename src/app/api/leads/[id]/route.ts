@@ -14,12 +14,12 @@ export async function GET(
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;
-  const lead = getLead(id, session.userId);
+  const lead = await getLead(id, session.userId);
   if (!lead) return NextResponse.json({ error: "Lead não encontrado." }, { status: 404 });
   return NextResponse.json({
     lead,
-    events: listEventsForLead(id, session.userId),
-    meeting: getMeetingForLead(id, session.userId),
+    events: await listEventsForLead(id, session.userId),
+    meeting: await getMeetingForLead(id, session.userId),
   });
 }
 
@@ -34,10 +34,10 @@ export async function PATCH(
   const body = await req.json();
 
   if (body.status) {
-    const before = getLead(id, session.userId);
-    const lead = updateLeadStatus(id, session.userId, body.status as LeadStatus);
+    const before = await getLead(id, session.userId);
+    const lead = await updateLeadStatus(id, session.userId, body.status as LeadStatus);
     if (!lead) return NextResponse.json({ error: "Lead não encontrado." }, { status: 404 });
-    logAudit(
+    await logAudit(
       session.userId,
       "lead.status_change",
       `${lead.name}: ${before?.status ?? "?"} → ${lead.status}`
@@ -45,7 +45,7 @@ export async function PATCH(
     return NextResponse.json(lead);
   }
 
-  const lead = updateLead(id, session.userId, body);
+  const lead = await updateLead(id, session.userId, body);
   if (!lead) return NextResponse.json({ error: "Lead não encontrado." }, { status: 404 });
   return NextResponse.json(lead);
 }
@@ -58,8 +58,8 @@ export async function DELETE(
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;
-  const lead = getLead(id, session.userId);
-  deleteLead(id, session.userId);
-  if (lead) logAudit(session.userId, "lead.delete", lead.name);
+  const lead = await getLead(id, session.userId);
+  await deleteLead(id, session.userId);
+  if (lead) await logAudit(session.userId, "lead.delete", lead.name);
   return NextResponse.json({ ok: true });
 }

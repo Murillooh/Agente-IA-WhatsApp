@@ -10,6 +10,6 @@ export async function DELETE(
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id, tagId } = await params;
-  removeTag(tagId, id, session.userId);
+  await removeTag(tagId, id, session.userId);
   return NextResponse.json({ ok: true });
 }

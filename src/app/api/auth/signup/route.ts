@@ -21,11 +21,11 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-  if (findUserByUsernameWithHash(username)) {
+  if (await findUserByUsernameWithHash(username)) {
     return NextResponse.json({ error: "Já existe uma conta com esse usuário." }, { status: 409 });
   }
 
-  const user = createUser({ username, name, passwordHash: hashPassword(password) });
+  const user = await createUser({ username, name, passwordHash: hashPassword(password) });
   await createSession(user.id);
   return NextResponse.json(user, { status: 201 });
 }

@@ -64,13 +64,13 @@ export async function POST(req: NextRequest) {
     const modeRaw = modeIdx >= 0 ? cols[modeIdx]?.toUpperCase() : "";
     const mode: Mode = modeRaw === "MODO_2" ? "MODO_2" : "MODO_1";
 
-    const dup = findDuplicateLead(session.userId, { whatsapp, phone, instagram });
+    const dup = await findDuplicateLead(session.userId, { whatsapp, phone, instagram });
     if (dup) {
       errors.push(`Linha ${i + 1}: duplicado de "${dup.name}", ignorada.`);
       continue;
     }
 
-    const lead = createLead(session.userId, {
+    const lead = await createLead(session.userId, {
       name,
       phone,
       whatsapp,
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
       source: sourceIdx >= 0 ? cols[sourceIdx] || "Importação CSV" : "Importação CSV",
       mode,
     });
-    addEvent({
+    await addEvent({
       leadId: lead.id,
       channel: "SISTEMA",
       direction: "SAIDA",

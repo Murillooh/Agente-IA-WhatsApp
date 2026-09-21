@@ -8,7 +8,7 @@ export async function GET() {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  return NextResponse.json(listLeads(session.userId));
+  return NextResponse.json(await listLeads(session.userId));
 }
 
 // Cadastro manual de um lead (o formulário "Novo lead" na tela de Leads).
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Nome é obrigatório." }, { status: 400 });
   }
 
-  const dup = findDuplicateLead(session.userId, {
+  const dup = await findDuplicateLead(session.userId, {
     whatsapp: body.whatsapp || null,
     phone: body.phone || null,
     instagram: body.instagram || null,
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   }
 
   const mode: Mode = body.mode === "MODO_2" ? "MODO_2" : "MODO_1";
-  const lead = createLead(session.userId, {
+  const lead = await createLead(session.userId, {
     name: body.name,
     phone: body.phone || null,
     whatsapp: body.whatsapp || null,
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     source: body.source || null,
     mode,
   });
-  addEvent({
+  await addEvent({
     leadId: lead.id,
     channel: "SISTEMA",
     direction: "SAIDA",

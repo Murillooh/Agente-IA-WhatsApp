@@ -9,6 +9,6 @@ export default async function LeadsPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const leads = listLeads(session.userId);
+  const leads = await listLeads(session.userId);
   return <LeadsClient leads={leads} />;
 }

@@ -8,7 +8,7 @@ export async function GET() {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const user = getUserById(session.userId);
+  const user = await getUserById(session.userId);
   if (!user) return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 });
   return NextResponse.json(user);
 }
@@ -35,12 +35,12 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
-  const user = getUserByIdWithHash(session.userId);
+  const user = await getUserByIdWithHash(session.userId);
   if (!user || !verifyPassword(currentPassword, user.passwordHash)) {
     return NextResponse.json({ error: "Senha atual incorreta." }, { status: 401 });
   }
 
-  updatePasswordHash(session.userId, hashPassword(newPassword));
-  logAudit(session.userId, "user.password_change");
+  await updatePasswordHash(session.userId, hashPassword(newPassword));
+  await logAudit(session.userId, "user.password_change");
   return NextResponse.json({ ok: true });
 }

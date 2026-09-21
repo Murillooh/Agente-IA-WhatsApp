@@ -15,10 +15,10 @@ const ACTION_LABELS: Record<string, string> = {
 export default async function AdminPage() {
   const session = await getSession();
   if (!session) redirect("/login");
-  if (!isUserAdmin(session.userId)) redirect("/");
+  if (!(await isUserAdmin(session.userId))) redirect("/");
 
-  const users = listUsers();
-  const auditLog = listAuditLog(200);
+  const users = await listUsers();
+  const auditLog = await listAuditLog(200);
 
   return (
     <div className="space-y-6">

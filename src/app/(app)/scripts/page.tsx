@@ -3,10 +3,11 @@ import { ScriptsClient } from "./ScriptsClient";
 
 export const dynamic = "force-dynamic";
 
-export default function ScriptsPage() {
-  const scripts = listScripts();
-  const stats = Object.fromEntries(
-    scripts.filter((s) => s.isActive).map((s) => [s.id, scriptStats(s.id)])
+export default async function ScriptsPage() {
+  const scripts = await listScripts();
+  const statsEntries = await Promise.all(
+    scripts.filter((s) => s.isActive).map(async (s) => [s.id, await scriptStats(s.id)])
   );
+  const stats = Object.fromEntries(statsEntries);
   return <ScriptsClient scripts={scripts} stats={stats} />;
 }

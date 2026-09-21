@@ -1,21 +1,8 @@
-import { randomUUID } from "crypto";
-import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import type { Lead, LeadStatus, Mode } from "@/lib/types";
 
-interface LeadRow {
-  id: string;
-  name: string;
-  phone: string | null;
-  whatsapp: string | null;
-  instagram: string | null;
-  source: string | null;
-  mode: Mode;
-  status: LeadStatus;
-  created_at: string;
-  updated_at: string;
-}
-
-function rowToLead(r: LeadRow): Lead {
+function rowToLead(r: any): Lead {
   return {
     id: r.id,
     name: r.name,
@@ -25,49 +12,43 @@ function rowToLead(r: LeadRow): Lead {
     source: r.source,
     mode: r.mode,
     status: r.status,
-    createdAt: r.created_at,
-    updatedAt: r.updated_at,
+    createdAt: r.createdAt.toISOString(),
+    updatedAt: r.updatedAt.toISOString(),
   };
 }
 
-// Toda função aqui recebe userId e filtra por ele — é isso que isola os
-// leads de cada conta. Nenhuma consulta de lead deve rodar sem esse filtro.
-
-/** from/to já vêm como ISO completo (o chamador resolve o fuso/dia). */
 export interface DateRange {
   from?: string;
   to?: string;
 }
 
-function rangeClause(range: DateRange | undefined, params: unknown[]): string {
-  let clause = "";
-  if (range?.from) {
-    clause += " AND created_at >= ?";
-    params.push(range.from);
-  }
-  if (range?.to) {
-    clause += " AND created_at <= ?";
-    params.push(range.to);
-  }
-  return clause;
+function dateRangeQuery(range?: DateRange) {
+  if (!range) return {};
+  const query: any = {};
+  if (range.from) query.gte = new Date(range.from);
+  if (range.to) query.lte = new Date(range.to);
+  return query;
 }
 
-export function listLeads(userId: string, range?: DateRange): Lead[] {
-  const params: unknown[] = [userId];
-  const sql =
-    "SELECT * FROM leads WHERE user_id = ?" + rangeClause(range, params) + " ORDER BY created_at DESC";
-  const rows = db.prepare(sql).all(...params) as LeadRow[];
+export async function listLeads(userId: string, range?: DateRange): Promise<Lead[]> {
+  const rows = await prisma.lead.findMany({
+    where: {
+      userId,
+      ...(range ? { createdAt: dateRangeQuery(range) } : {}),
+    },
+    orderBy: { createdAt: "desc" },
+  });
   return rows.map(rowToLead);
 }
 
-export function getLead(id: string, userId: string): Lead | null {
-  const row = db.prepare("SELECT * FROM leads WHERE id = ? AND user_id = ?").get(id, userId) as
-    | LeadRow
-    | undefined;
+export async function getLead(id: string, userId: string): Promise<Lead | null> {
+  const row = await prisma.lead.findFirst({
+    where: { id, userId }, // userId ensures they own it
+  });
   return row ? rowToLead(row) : null;
 }
 
-export function createLead(
+export async function createLead(
   userId: string,
   input: {
     name: string;
@@ -77,67 +58,65 @@ export function createLead(
     source?: string | null;
     mode: Mode;
   }
-): Lead {
-  const now = new Date().toISOString();
-  const id = randomUUID();
-  db.prepare(
-    `INSERT INTO leads (id, user_id, name, phone, whatsapp, instagram, source, mode, status, created_at, updated_at)
-     VALUES (@id, @user_id, @name, @phone, @whatsapp, @instagram, @source, @mode, 'NOVO', @now, @now)`
-  ).run({
-    id,
-    user_id: userId,
-    name: input.name,
-    phone: input.phone ?? null,
-    whatsapp: input.whatsapp ?? null,
-    instagram: input.instagram ?? null,
-    source: input.source ?? null,
-    mode: input.mode,
-    now,
+): Promise<Lead> {
+  const row = await prisma.lead.create({
+    data: {
+      userId,
+      name: input.name,
+      phone: input.phone || null,
+      whatsapp: input.whatsapp || null,
+      instagram: input.instagram || null,
+      source: input.source || null,
+      mode: input.mode,
+      status: "NOVO",
+    },
   });
-  return getLead(id, userId)!;
+  return rowToLead(row);
 }
 
-export function updateLeadStatus(
+export async function updateLeadStatus(
   id: string,
   userId: string,
   status: LeadStatus
-): Lead | null {
-  const now = new Date().toISOString();
-  db.prepare("UPDATE leads SET status = ?, updated_at = ? WHERE id = ? AND user_id = ?").run(
-    status,
-    now,
-    id,
-    userId
-  );
-  return getLead(id, userId);
+): Promise<Lead | null> {
+  try {
+    const row = await prisma.lead.updateMany({
+      where: { id, userId },
+      data: { status },
+    });
+    if (row.count === 0) return null;
+    return await getLead(id, userId);
+  } catch {
+    return null;
+  }
 }
 
-export function updateLead(
+export async function updateLead(
   id: string,
   userId: string,
   input: Partial<Pick<Lead, "name" | "phone" | "whatsapp" | "instagram" | "source" | "mode">>
-): Lead | null {
-  const current = getLead(id, userId);
+): Promise<Lead | null> {
+  const current = await getLead(id, userId);
   if (!current) return null;
-  const now = new Date().toISOString();
-  db.prepare(
-    `UPDATE leads SET name=@name, phone=@phone, whatsapp=@whatsapp, instagram=@instagram, source=@source, mode=@mode, updated_at=@now WHERE id=@id AND user_id=@user_id`
-  ).run({
-    id,
-    user_id: userId,
-    name: input.name ?? current.name,
-    phone: input.phone ?? current.phone,
-    whatsapp: input.whatsapp ?? current.whatsapp,
-    instagram: input.instagram ?? current.instagram,
-    source: input.source ?? current.source,
-    mode: input.mode ?? current.mode,
-    now,
+  
+  await prisma.lead.updateMany({
+    where: { id, userId },
+    data: {
+      name: input.name ?? current.name,
+      phone: input.phone !== undefined ? input.phone : current.phone,
+      whatsapp: input.whatsapp !== undefined ? input.whatsapp : current.whatsapp,
+      instagram: input.instagram !== undefined ? input.instagram : current.instagram,
+      source: input.source !== undefined ? input.source : current.source,
+      mode: input.mode ?? current.mode,
+    },
   });
-  return getLead(id, userId);
+  return await getLead(id, userId);
 }
 
-export function deleteLead(id: string, userId: string): void {
-  db.prepare("DELETE FROM leads WHERE id = ? AND user_id = ?").run(id, userId);
+export async function deleteLead(id: string, userId: string): Promise<void> {
+  await prisma.lead.deleteMany({
+    where: { id, userId },
+  });
 }
 
 function normalizePhone(v: string | null | undefined): string | null {
@@ -152,21 +131,18 @@ function normalizeInstagram(v: string | null | undefined): string | null {
   return t || null;
 }
 
-/** Procura um lead já cadastrado (dessa conta) com o mesmo WhatsApp,
- * telefone ou Instagram — compara telefone/WhatsApp cruzado (um pode ter
- * ficado salvo no campo errado) e Instagram sem "@"/maiúscula. Usado no
- * cadastro manual e na importação CSV pra evitar duplicado. */
-export function findDuplicateLead(
+export async function findDuplicateLead(
   userId: string,
   input: { whatsapp?: string | null; phone?: string | null; instagram?: string | null }
-): Lead | null {
+): Promise<Lead | null> {
   const phoneCandidates = [normalizePhone(input.whatsapp), normalizePhone(input.phone)].filter(
     (v): v is string => v !== null
   );
   const ig = normalizeInstagram(input.instagram);
   if (phoneCandidates.length === 0 && !ig) return null;
 
-  for (const lead of listLeads(userId)) {
+  const leads = await listLeads(userId);
+  for (const lead of leads) {
     if (ig && normalizeInstagram(lead.instagram) === ig) return lead;
     if (phoneCandidates.length > 0) {
       const leadPhones = [normalizePhone(lead.whatsapp), normalizePhone(lead.phone)].filter(
@@ -178,13 +154,37 @@ export function findDuplicateLead(
   return null;
 }
 
-export function countLeadsByStatus(userId: string, range?: DateRange): Record<LeadStatus, number> {
-  const params: unknown[] = [userId];
-  const sql =
-    "SELECT status, COUNT(*) as c FROM leads WHERE user_id = ?" +
-    rangeClause(range, params) +
-    " GROUP BY status";
-  const rows = db.prepare(sql).all(...params) as { status: LeadStatus; c: number }[];
+export async function findLeadByPhoneGlobal(phone: string): Promise<Lead | null> {
+  const normalized = normalizePhone(phone);
+  if (!normalized) return null;
+
+  // We search globally, without userId context, because webhooks arrive without it
+  const rows = await prisma.lead.findMany();
+  for (const lead of rows) {
+    if (normalizePhone(lead.whatsapp) === normalized || normalizePhone(lead.phone) === normalized) {
+      return rowToLead(lead);
+    }
+  }
+  return null;
+}
+
+export async function updateLeadStatusGlobal(id: string, status: LeadStatus): Promise<void> {
+  await prisma.lead.update({
+    where: { id },
+    data: { status },
+  });
+}
+
+export async function countLeadsByStatus(userId: string, range?: DateRange): Promise<Record<LeadStatus, number>> {
+  const result = await prisma.lead.groupBy({
+    by: ["status"],
+    where: {
+      userId,
+      ...(range ? { createdAt: dateRangeQuery(range) } : {}),
+    },
+    _count: true,
+  });
+
   const base: Record<LeadStatus, number> = {
     NOVO: 0,
     CONTATADO: 0,
@@ -193,32 +193,34 @@ export function countLeadsByStatus(userId: string, range?: DateRange): Record<Le
     FECHADO: 0,
     PERDIDO: 0,
   };
-  for (const r of rows) base[r.status] = r.c;
+  for (const r of result) base[r.status as LeadStatus] = r._count;
   return base;
 }
 
-export function countLeadsByMode(userId: string, range?: DateRange): Record<Mode, number> {
-  const params: unknown[] = [userId];
-  const sql =
-    "SELECT mode, COUNT(*) as c FROM leads WHERE user_id = ?" +
-    rangeClause(range, params) +
-    " GROUP BY mode";
-  const rows = db.prepare(sql).all(...params) as { mode: Mode; c: number }[];
+export async function countLeadsByMode(userId: string, range?: DateRange): Promise<Record<Mode, number>> {
+  const result = await prisma.lead.groupBy({
+    by: ["mode"],
+    where: {
+      userId,
+      ...(range ? { createdAt: dateRangeQuery(range) } : {}),
+    },
+    _count: true,
+  });
+
   const base: Record<Mode, number> = { MODO_1: 0, MODO_2: 0 };
-  for (const r of rows) base[r.mode] = r.c;
+  for (const r of result) base[r.mode as Mode] = r._count;
   return base;
 }
 
-/** Média de dias entre criado e fechado — usa updated_at do lead FECHADO
- * como aproximação da data de fechamento (não existe uma coluna própria
- * pra isso hoje). null se não tiver nenhum lead fechado no período. */
-export function averageDaysToClose(userId: string, range?: DateRange): number | null {
-  const params: unknown[] = [userId];
-  const sql =
-    `SELECT AVG(julianday(updated_at) - julianday(created_at)) as avg_days
-     FROM leads WHERE user_id = ? AND status = 'FECHADO'` + rangeClause(range, params);
-  const row = db.prepare(sql).get(...params) as { avg_days: number | null };
-  return row.avg_days;
+export async function averageDaysToClose(userId: string, range?: DateRange): Promise<number | null> {
+  const rows = (await prisma.$queryRaw`
+    SELECT AVG(EXTRACT(EPOCH FROM (updated_at - created_at)) / 86400) as avg_days
+    FROM leads
+    WHERE user_id = ${userId} AND status = 'FECHADO'
+    ${range?.from ? Prisma.sql`AND created_at >= ${new Date(range.from)}` : Prisma.empty}
+    ${range?.to ? Prisma.sql`AND created_at <= ${new Date(range.to)}` : Prisma.empty}
+  `) as any[];
+  return rows[0]?.avg_days ? Number(rows[0].avg_days) : null;
 }
 
 export interface SourceConversion {
@@ -227,14 +229,21 @@ export interface SourceConversion {
   closed: number;
 }
 
-export function conversionBySource(userId: string, range?: DateRange): SourceConversion[] {
-  const params: unknown[] = [userId];
-  const sql =
-    `SELECT COALESCE(source, 'Sem origem') as source,
-            COUNT(*) as total,
-            SUM(CASE WHEN status = 'FECHADO' THEN 1 ELSE 0 END) as closed
-     FROM leads WHERE user_id = ?` +
-    rangeClause(range, params) +
-    ` GROUP BY COALESCE(source, 'Sem origem') ORDER BY total DESC`;
-  return db.prepare(sql).all(...params) as SourceConversion[];
+export async function conversionBySource(userId: string, range?: DateRange): Promise<SourceConversion[]> {
+  const rows = (await prisma.$queryRaw`
+    SELECT COALESCE(source, 'Sem origem') as source,
+           COUNT(*) as total,
+           SUM(CASE WHEN status = 'FECHADO' THEN 1 ELSE 0 END) as closed
+    FROM leads 
+    WHERE user_id = ${userId}
+    ${range?.from ? Prisma.sql`AND created_at >= ${new Date(range.from)}` : Prisma.empty}
+    ${range?.to ? Prisma.sql`AND created_at <= ${new Date(range.to)}` : Prisma.empty}
+    GROUP BY COALESCE(source, 'Sem origem') 
+    ORDER BY total DESC
+  `) as any[];
+  return rows.map((r: any) => ({
+    source: r.source,
+    total: Number(r.total),
+    closed: Number(r.closed),
+  }));
 }

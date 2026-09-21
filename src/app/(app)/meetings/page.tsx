@@ -9,6 +9,6 @@ export default async function MeetingsPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const meetings = listMeetings(session.userId);
+  const meetings = await listMeetings(session.userId);
   return <MeetingsClient meetings={meetings} />;
 }

@@ -12,8 +12,8 @@ export async function PATCH(
 
   const script =
     typeof body.content === "string"
-      ? editScriptContent(id, body)
-      : patchScriptMeta(id, body);
+      ? await editScriptContent(id, body)
+      : await patchScriptMeta(id, body);
 
   if (!script) return NextResponse.json({ error: "Script não encontrado." }, { status: 404 });
   return NextResponse.json(script);
@@ -24,6 +24,6 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  deleteScript(id);
+  await deleteScript(id);
   return NextResponse.json({ ok: true });
 }
