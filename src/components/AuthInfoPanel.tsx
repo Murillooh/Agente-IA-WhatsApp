@@ -58,13 +58,14 @@ export function AuthInfoPanel() {
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           />
           
-          {/* The Mascot Image (using mix-blend-screen to remove dark background if any and make it look like a hologram) */}
-          <div className="absolute inset-2 rounded-full overflow-hidden border border-white/20 shadow-[0_0_30px_rgba(99,102,241,0.5)] bg-indigo-900/50">
+          {/* The Mascot Image */}
+          <div className="absolute inset-2 rounded-full overflow-hidden border border-white/20 shadow-[0_0_30px_rgba(99,102,241,0.5)]">
              <Image 
                src="/mascot.jpg" 
                alt="AI Mascot" 
                fill 
-               className="object-cover mix-blend-screen opacity-90"
+               priority
+               className="object-cover"
              />
           </div>
 
