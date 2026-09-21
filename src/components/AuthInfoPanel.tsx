@@ -4,24 +4,6 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Zap, CalendarCheck, Sparkles, Check, CheckCheck } from "lucide-react";
 
-const phrases = [
-  { 
-    title: "Prospecção Automática", 
-    subtitle: "Deixe a IA prospectar e qualificar seus leads 24 horas por dia.",
-    icon: <Zap className="w-8 h-8 text-yellow-400" /> 
-  },
-  { 
-    title: "Sempre Disponível", 
-    subtitle: "Sua equipe de vendas que nunca dorme, respondendo em segundos.",
-    icon: <MessageCircle className="w-8 h-8 text-green-400" /> 
-  },
-  { 
-    title: "Mais Reuniões", 
-    subtitle: "Transformamos leads frios em reuniões agendadas no seu calendário.",
-    icon: <CalendarCheck className="w-8 h-8 text-blue-400" /> 
-  },
-];
-
 const chatMessages = [
   { id: 1, text: "Olá, queria saber como funciona a plataforma.", isBot: false },
   { id: 2, text: "Olá! A nossa IA automatiza suas vendas no WhatsApp 24h por dia.", isBot: true },
@@ -30,16 +12,7 @@ const chatMessages = [
 ];
 
 export function AuthInfoPanel() {
-  const [index, setIndex] = useState(0);
   const [visibleMessages, setVisibleMessages] = useState<number[]>([]);
-
-  // Rotating phrases
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % phrases.length);
-    }, 4500);
-    return () => clearInterval(timer);
-  }, []);
 
   // Animating chat messages inside the phone
   useEffect(() => {
@@ -207,41 +180,7 @@ export function AuthInfoPanel() {
 
           </div>
 
-          {/* Sparkles around phone that change per phrase */}
-          <AnimatePresence mode="popLayout">
-            <motion.div 
-              key={index}
-              className="absolute -right-8 top-12 bg-white/10 backdrop-blur-xl p-3 rounded-2xl border border-white/20 shadow-xl z-30"
-              initial={{ scale: 0, opacity: 0, y: 20, rotate: -15 }}
-              animate={{ scale: 1, opacity: 1, y: 0, rotate: 10 }}
-              exit={{ scale: 0, opacity: 0, y: -20, rotate: 20 }}
-              transition={{ type: "spring", stiffness: 200, damping: 15 }}
-            >
-               {phrases[index].icon}
-            </motion.div>
-          </AnimatePresence>
         </motion.div>
-
-        {/* Text Container */}
-        <div className="relative h-40 w-full flex flex-col items-center">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 1.1 }}
-              transition={{ duration: 0.6, ease: "backOut" }}
-              className="absolute flex flex-col items-center w-full"
-            >
-              <h2 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-white drop-shadow-lg mb-4">
-                {phrases[index].title}
-              </h2>
-              <p className="text-indigo-100 text-lg font-medium leading-relaxed max-w-md opacity-90">
-                {phrases[index].subtitle}
-              </p>
-            </motion.div>
-          </AnimatePresence>
-        </div>
       </div>
     </div>
   );
