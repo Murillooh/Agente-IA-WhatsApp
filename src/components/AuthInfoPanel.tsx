@@ -50,7 +50,11 @@ export function AuthInfoPanel() {
     
     const messageInterval = setInterval(() => {
       if (currentMessageIndex < chatMessages.length) {
-        setVisibleMessages(prev => [...prev, chatMessages[currentMessageIndex].id]);
+        const msgId = chatMessages[currentMessageIndex].id;
+        setVisibleMessages(prev => {
+          if (prev.includes(msgId)) return prev;
+          return [...prev, msgId];
+        });
         currentMessageIndex++;
       } else {
         // Reset and loop
