@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Zap, CalendarCheck, Sparkles } from "lucide-react";
+import Image from "next/image";
+import mascotImg from "../../public/mascot.jpg";
 
 const phrases = [
   { 
@@ -85,16 +87,18 @@ export function AuthInfoPanel() {
             transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
           />
           
-          {/* The Mascot Image (using standard img tag to bypass Next.js image cache issues locally) */}
+          {/* The Mascot Image (using imported image to force Turbopack compilation without needing a restart) */}
           <motion.div 
-            className="absolute inset-2 rounded-full overflow-hidden border-2 border-white/10 shadow-[0_0_40px_rgba(99,102,241,0.6)]"
+            className="absolute inset-2 rounded-full overflow-hidden border-2 border-white/10 shadow-[0_0_40px_rgba(99,102,241,0.6)] bg-indigo-950/50"
             animate={{ scale: [0.95, 1.05, 0.95] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           >
-             <img 
-               src="/mascot.jpg?v=2" 
+             <Image 
+               src={mascotImg} 
                alt="AI Mascot" 
-               className="w-full h-full object-cover"
+               fill
+               className="object-cover"
+               priority
              />
           </motion.div>
 
