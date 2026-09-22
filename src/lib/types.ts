@@ -16,6 +16,7 @@ export type MeetingStatus = "AGENDADA" | "REALIZADA" | "CANCELADA";
 
 export interface Lead {
   id: string;
+  userId: string;
   name: string;
   phone: string | null;
   whatsapp: string | null;

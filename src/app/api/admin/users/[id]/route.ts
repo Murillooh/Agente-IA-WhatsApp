@@ -6,8 +6,9 @@ import { logAudit } from "@/lib/repo/audit";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
@@ -26,13 +27,13 @@ export async function PATCH(
   const { isApproved, isAdmin } = body;
   
   // Impede de alterar a si mesmo se for tirar o admin (opcional, para evitar travar a conta)
-  if (params.id === session.userId && isAdmin === false) {
+  if (id === session.userId && isAdmin === false) {
     return NextResponse.json({ error: "Você não pode remover seu próprio acesso de administrador." }, { status: 400 });
   }
 
   try {
     const updatedUser = await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(isApproved !== undefined && { isApproved }),
         ...(isAdmin !== undefined && { isAdmin }),

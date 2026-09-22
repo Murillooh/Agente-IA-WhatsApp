@@ -90,6 +90,7 @@ export async function POST(req: NextRequest) {
         if (aiReply) {
           // Enviar resposta
           const sendRes = await sendWhatsAppMessage({
+            leadId: lead.id,
             to: fromNumber,
             message: aiReply,
           });

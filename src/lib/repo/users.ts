@@ -5,6 +5,8 @@ export interface User {
   username: string;
   name: string;
   isAdmin: boolean;
+  isApproved: boolean;
+  googleRefreshToken: string | null;
   createdAt: string;
 }
 
@@ -14,6 +16,8 @@ function rowToUser(row: any): User {
     username: row.username,
     name: row.name,
     isAdmin: row.isAdmin,
+    isApproved: row.isApproved ?? true,
+    googleRefreshToken: row.googleRefreshToken ?? null,
     createdAt: row.createdAt.toISOString(),
   };
 }
@@ -69,12 +73,14 @@ export async function updatePasswordHash(id: string, passwordHash: string): Prom
   });
 }
 
-export async function createUser(input: { username: string; name: string; passwordHash: string }): Promise<User> {
+export async function createUser(input: { username: string; name: string; passwordHash: string; isApproved?: boolean; isAdmin?: boolean }): Promise<User> {
   const row = await prisma.user.create({
     data: {
       username: input.username,
       name: input.name,
       passwordHash: input.passwordHash,
+      ...(input.isApproved !== undefined && { isApproved: input.isApproved }),
+      ...(input.isAdmin !== undefined && { isAdmin: input.isAdmin }),
     },
   });
   return rowToUser(row);

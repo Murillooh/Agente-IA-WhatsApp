@@ -78,7 +78,7 @@ ${systemPrompt}`,
     // Se o modelo decidiu chamar uma tool (ex: agendar reunião)
     if (responseMessage.tool_calls) {
       for (const toolCall of responseMessage.tool_calls) {
-        if (toolCall.function.name === "schedule_meeting") {
+        if (toolCall.type === "function" && toolCall.function.name === "schedule_meeting") {
           const args = JSON.parse(toolCall.function.arguments);
           
           // Chama o Google Calendar

@@ -5,6 +5,7 @@ import type { Lead, LeadStatus, Mode } from "@/lib/types";
 function rowToLead(r: any): Lead {
   return {
     id: r.id,
+    userId: r.userId,
     name: r.name,
     phone: r.phone,
     whatsapp: r.whatsapp,
