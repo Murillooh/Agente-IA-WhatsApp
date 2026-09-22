@@ -2,8 +2,8 @@ import OpenAI from "openai";
 import prisma from "@/lib/prisma";
 import { createMeetingEvent } from "@/lib/integrations/googleCalendar";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const getOpenAIClient = () => new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || "dummy-key-for-build",
 });
 
 const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
@@ -65,6 +65,7 @@ ${systemPrompt}`,
       ...conversationHistory,
     ];
 
+    const openai = getOpenAIClient();
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
