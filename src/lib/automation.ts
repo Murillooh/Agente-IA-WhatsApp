@@ -26,7 +26,24 @@ export async function runAutomationForLead(leadId: string, userId: string) {
   // 1) WhatsApp, se houver número
   if (lead.whatsapp) {
     const script = await getActiveScript(lead.mode, "WHATSAPP");
-    const message = renderScript(script?.content, lead);
+    
+    // Pede para a IA gerar a primeira mensagem de prospecção usando o script (prompt)
+    let message = `Oi ${lead.name !== "Novo Contato" ? lead.name : ""}! Tudo bem?`;
+    try {
+      // Importa dinamicamente para evitar ciclo de dependências, se houver
+      const { generateAgentResponse } = await import("@/lib/ai/responder");
+      const systemPrompt = script?.content || "";
+      const aiResponse = await generateAgentResponse(leadId, systemPrompt, [
+        { 
+          role: "user", 
+          content: `(Instrução de sistema oculta) O lead acabou de entrar. Inicie a conversa de forma proativa (outbound). Siga fielmente o seu tom de voz e regras. Envie APENAS o texto da sua primeira mensagem para ele.` 
+        }
+      ]);
+      if (aiResponse) message = aiResponse;
+    } catch (e) {
+      console.error("Erro ao gerar primeira mensagem via IA, usando fallback.", e);
+    }
+
     const result = await sendWhatsAppMessage({
       to: lead.whatsapp,
       message,
@@ -47,7 +64,23 @@ export async function runAutomationForLead(leadId: string, userId: string) {
   // 2) Instagram, se houver usuário
   if (lead.instagram) {
     const script = await getActiveScript(lead.mode, "INSTAGRAM");
-    const message = renderScript(script?.content, lead);
+    
+    // Pede para a IA gerar a primeira mensagem
+    let message = `Oi ${lead.name !== "Novo Contato" ? lead.name : ""}! Tudo bem?`;
+    try {
+      const { generateAgentResponse } = await import("@/lib/ai/responder");
+      const systemPrompt = script?.content || "";
+      const aiResponse = await generateAgentResponse(leadId, systemPrompt, [
+        { 
+          role: "user", 
+          content: `(Instrução de sistema oculta) O lead acabou de entrar pelo Instagram. Inicie a conversa de forma proativa (outbound). Siga fielmente o seu tom de voz e regras. Envie APENAS o texto da sua primeira mensagem para ele.` 
+        }
+      ]);
+      if (aiResponse) message = aiResponse;
+    } catch (e) {
+      console.error("Erro ao gerar primeira mensagem (Insta) via IA.", e);
+    }
+
     const result = await sendInstagramMessage({
       to: lead.instagram,
       message,
@@ -140,7 +173,21 @@ export async function runFollowUpForLead(leadId: string, userId: string) {
 
   if (lead.whatsapp) {
     const script = await getActiveScript(lead.mode, "WHATSAPP");
-    const message = renderScript(script?.content, lead);
+    let message = `Oi ${lead.name !== "Novo Contato" ? lead.name : ""}! Conseguimos conversar hoje?`;
+    try {
+      const { generateAgentResponse } = await import("@/lib/ai/responder");
+      const systemPrompt = script?.content || "";
+      const aiResponse = await generateAgentResponse(leadId, systemPrompt, [
+        { 
+          role: "user", 
+          content: `(Instrução de sistema oculta) Faça um "follow-up" (retomada de contato) com o lead pois ele não responde há alguns dias. Seja super breve, natural, e puxe o interesse dele novamente usando as regras do seu tom de voz. Envie APENAS a mensagem.` 
+        }
+      ]);
+      if (aiResponse) message = aiResponse;
+    } catch (e) {
+      console.error("Erro ao gerar follow-up via IA.", e);
+    }
+
     const result = await sendWhatsAppMessage({ to: lead.whatsapp, message, leadId });
     await addEvent({
       leadId,
@@ -154,7 +201,21 @@ export async function runFollowUpForLead(leadId: string, userId: string) {
 
   if (lead.instagram) {
     const script = await getActiveScript(lead.mode, "INSTAGRAM");
-    const message = renderScript(script?.content, lead);
+    let message = `Oi ${lead.name !== "Novo Contato" ? lead.name : ""}! Conseguimos conversar hoje?`;
+    try {
+      const { generateAgentResponse } = await import("@/lib/ai/responder");
+      const systemPrompt = script?.content || "";
+      const aiResponse = await generateAgentResponse(leadId, systemPrompt, [
+        { 
+          role: "user", 
+          content: `(Instrução de sistema oculta) Faça um "follow-up" (retomada de contato) pelo Instagram com o lead pois ele não responde há alguns dias. Seja super breve, natural e use seu tom de voz. Envie APENAS a mensagem.` 
+        }
+      ]);
+      if (aiResponse) message = aiResponse;
+    } catch (e) {
+      console.error("Erro ao gerar follow-up (Insta) via IA.", e);
+    }
+
     const result = await sendInstagramMessage({ to: lead.instagram, message, leadId });
     await addEvent({
       leadId,
