@@ -11,7 +11,7 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "schedule_meeting",
-      description: "Agenda uma reunião no Google Calendar e no sistema para o cliente.",
+      description: "Agenda uma reunião no Google Calendar e no sistema para o cliente. OBRIGATÓRIO: você precisa pedir o e-mail do cliente ANTES de chamar essa função para enviar o convite.",
       parameters: {
         type: "object",
         properties: {
@@ -23,12 +23,16 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
             type: "string",
             description: "Data e hora de término no formato ISO 8601.",
           },
+          leadEmail: {
+            type: "string",
+            description: "E-mail do cliente para enviar o convite do Google Calendar.",
+          },
           description: {
             type: "string",
             description: "Notas opcionais sobre a reunião ou assunto.",
           },
         },
-        required: ["startTimeIso", "endTimeIso"],
+        required: ["startTimeIso", "endTimeIso", "leadEmail"],
       },
     },
   },
@@ -59,6 +63,10 @@ export async function generateAgentResponse(
 Sua missão é conversar com o cliente, responder dúvidas e marcar uma reunião (call) se houver intenção.
 Hoje é: ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })} (Horário de Brasília).
 Nome do Cliente (se souber): ${lead.name !== "Novo Contato" ? lead.name : "Cliente"}
+
+REGRA CRÍTICA PARA AGENDAMENTO DE REUNIÃO:
+Se o cliente quiser marcar a reunião e vocês definirem um horário, você deve OBRIGATORIAMENTE pedir o e-mail dele ANTES de chamar a função 'schedule_meeting'. Diga algo como: "Perfeito, agendado! Por favor, qual é o seu melhor e-mail para eu te enviar o convite na agenda?". Somente depois de ele informar o e-mail, você chama a ferramenta.
+
 Instruções de Comportamento (Script Ativo):
 ${systemPrompt}`,
       },
@@ -88,6 +96,7 @@ ${systemPrompt}`,
             userId: lead.userId,
             leadName: lead.name,
             leadPhone: lead.phone || lead.whatsapp || "Desconhecido",
+            leadEmail: args.leadEmail,
             startTimeIso: args.startTimeIso,
             endTimeIso: args.endTimeIso,
             description: args.description,

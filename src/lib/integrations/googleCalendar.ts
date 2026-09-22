@@ -53,6 +53,7 @@ export async function createMeetingEvent(params: {
   userId: string;
   leadName: string;
   leadPhone: string;
+  leadEmail?: string;
   startTimeIso: string; // ex: 2026-09-25T14:00:00-03:00
   endTimeIso: string;
   description?: string;
@@ -83,6 +84,7 @@ export async function createMeetingEvent(params: {
         dateTime: params.endTimeIso,
         timeZone: "America/Sao_Paulo",
       },
+      attendees: params.leadEmail ? [{ email: params.leadEmail }] : undefined,
       reminders: {
         useDefault: false,
         overrides: [
@@ -95,6 +97,7 @@ export async function createMeetingEvent(params: {
     const response = await calendar.events.insert({
       calendarId,
       requestBody: event,
+      sendUpdates: "all", // Garante que o Google envie o convite por e-mail para os attendees
     });
 
     return {
