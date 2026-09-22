@@ -45,13 +45,16 @@ export async function sendWhatsAppMessage(
     };
   }
 
+  const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
   try {
     const res = await fetch(
       `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`,
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          ...(clientToken ? { "Client-Token": clientToken } : {})
         },
         body: JSON.stringify({
           phone: input.to, // O Z-API espera o número em formato DDI+DDD+NUM sem símbolos, ex: 5511999999999
