@@ -36,12 +36,17 @@ export function ThemeToggle() {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- sincroniza com uma classe do DOM que um script fora do React já aplicou; não dá pra saber isso no primeiro render (server não tem document).
-    setIsDark(document.documentElement.classList.contains("dark"));
+    // Lê o data-theme que foi gravado pelo script anti-flash no <head>
+    // antes da hidratação do React, garantindo sincronismo perfeito.
+    const dataTheme = document.documentElement.getAttribute("data-theme");
+    const dark = dataTheme === "dark" || document.documentElement.classList.contains("dark");
+    setIsDark(dark);
   }, []);
 
   function applyRealTheme(next: boolean) {
-    document.documentElement.classList.toggle("dark", next);
+    const root = document.documentElement;
+    root.classList.toggle("dark", next);
+    root.setAttribute("data-theme", next ? "dark" : "light");
     try {
       localStorage.setItem("theme", next ? "dark" : "light");
     } catch {
