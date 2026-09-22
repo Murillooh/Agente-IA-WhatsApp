@@ -36,8 +36,6 @@ export async function sendWhatsAppMessage(
 ): Promise<SendMessageResult> {
   const instanceId = process.env.ZAPI_INSTANCE_ID;
   const token = process.env.ZAPI_TOKEN;
-  const clientToken = process.env.ZAPI_CLIENT_TOKEN; // Usualmente passado por header se requerido
-
   if (!instanceId || !token) {
     console.warn("⚠️ ZAPI_INSTANCE_ID ou ZAPI_TOKEN não configurados. Usando mock.");
     await new Promise((r) => setTimeout(r, 150));
@@ -53,8 +51,7 @@ export async function sendWhatsAppMessage(
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          ...(clientToken ? { "Client-Token": clientToken } : {})
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           phone: input.to, // O Z-API espera o número em formato DDI+DDD+NUM sem símbolos, ex: 5511999999999
