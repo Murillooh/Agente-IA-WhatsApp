@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { deleteScript, editScriptContent, patchScriptMeta } from "@/lib/repo/scripts";
+import { getSession } from "@/lib/auth/session";
+import { isUserAdmin } from "@/lib/repo/users";
 
 // Conteúdo mudou -> gera versão nova (histórico preservado). Só
 // nome/ativo/peso -> ajuste no lugar, sem versionar.
@@ -7,6 +9,11 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = await getSession();
+  if (!session || !(await isUserAdmin(session.userId))) {
+    return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
+  }
+
   const { id } = await params;
   const body = await req.json();
 
@@ -23,6 +30,11 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = await getSession();
+  if (!session || !(await isUserAdmin(session.userId))) {
+    return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
+  }
+
   const { id } = await params;
   await deleteScript(id);
   return NextResponse.json({ ok: true });

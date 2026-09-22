@@ -17,6 +17,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Usuário ou senha inválidos." }, { status: 401 });
   }
 
+  if (!user.isApproved) {
+    return NextResponse.json({ error: "Sua conta está aguardando aprovação de um administrador." }, { status: 403 });
+  }
+
   await createSession(user.id);
   return NextResponse.json({ id: user.id, username: user.username, name: user.name });
 }

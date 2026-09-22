@@ -16,11 +16,13 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSwitchMode = (toLogin: boolean) => {
     if (isLogin === toLogin) return;
     setError(null);
+    setSuccessMsg(null);
     setIsLogin(toLogin);
   };
 
@@ -28,6 +30,7 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccessMsg(null);
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -46,6 +49,7 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
   const submitSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMsg(null);
     if (password !== confirmPassword) {
       setError("As senhas não são iguais.");
       return;
@@ -62,6 +66,18 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
       setLoading(false);
       return;
     }
+
+    const data = await res.json().catch(() => null);
+    if (data?.message) {
+      setSuccessMsg(data.message);
+      setLoading(false);
+      setName("");
+      setUsername("");
+      setPassword("");
+      setConfirmPassword("");
+      return;
+    }
+
     router.push("/");
     router.refresh();
   };
@@ -172,6 +188,7 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
                       <a href="#" className="text-gray-400 font-medium hover:text-white transition-colors">Esqueceu a senha?</a>
                     </div>
                     {error && <p className="text-xs text-red-400 text-center">{error}</p>}
+                    {successMsg && <p className="text-xs text-emerald-400 text-center">{successMsg}</p>}
                   </div>
 
                   <div className="mt-8 flex flex-col gap-6">
@@ -281,6 +298,7 @@ export function AnimatedAuth({ initialMode = "login" }: { initialMode?: "login" 
                       <span className="text-gray-400 font-medium text-xs leading-relaxed">Eu concordo com os Termos e Política de Privacidade</span>
                     </label>
                     {error && <p className="text-xs text-red-400 text-center">{error}</p>}
+                    {successMsg && <p className="text-xs text-emerald-400 text-center">{successMsg}</p>}
                   </div>
 
                   <div className="mt-8 flex flex-col gap-6">

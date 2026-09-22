@@ -3,6 +3,7 @@ import { ShieldCheck, ShieldOff } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
 import { isUserAdmin, listUsers } from "@/lib/repo/users";
 import { listAuditLog } from "@/lib/repo/audit";
+import { UserTable } from "@/components/admin/UserTable";
 
 export const dynamic = "force-dynamic";
 
@@ -35,55 +36,18 @@ export default async function AdminPage() {
         <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
           Usuários
         </h2>
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-slate-100 text-xs font-medium uppercase tracking-wide text-slate-400 dark:border-slate-800 dark:text-slate-500">
-              <tr>
-                <th className="py-2 pr-3">Nome</th>
-                <th className="py-2 pr-3">Usuário</th>
-                <th className="py-2 pr-3">Acesso</th>
-                <th className="py-2">Criado em</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr
-                  key={u.id}
-                  className="border-b border-slate-50 last:border-0 dark:border-slate-800/60"
-                >
-                  <td className="py-2.5 pr-3 font-medium text-slate-900 dark:text-white">
-                    {u.name}
-                  </td>
-                  <td className="py-2.5 pr-3 text-slate-500 dark:text-slate-400">{u.username}</td>
-                  <td className="py-2.5 pr-3">
-                    {u.isAdmin ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400">
-                        <ShieldCheck size={12} /> Admin
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                        <ShieldOff size={12} /> Padrão
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-2.5 text-slate-400 dark:text-slate-500">
-                    {new Date(u.createdAt).toLocaleString("pt-BR", {
-                      dateStyle: "short",
-                      timeStyle: "short",
-                    })}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">
-          Promover alguém a admin ainda é manual, direto no banco (
-          <code className="rounded bg-slate-50 px-1 py-0.5 dark:bg-slate-800">
-            UPDATE users SET is_admin = 1 WHERE username = ...
-          </code>
-          ).
-        </p>
+        
+        <UserTable 
+          initialUsers={users.map(u => ({
+            id: u.id,
+            name: u.name,
+            username: u.username,
+            isAdmin: u.isAdmin,
+            isApproved: u.isApproved,
+            createdAt: u.createdAt,
+          }))} 
+          currentUserId={session.userId} 
+        />
       </div>
 
       <div className="card p-6">

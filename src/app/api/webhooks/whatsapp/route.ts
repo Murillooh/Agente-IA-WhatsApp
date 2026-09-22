@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { findLeadByPhoneGlobal, updateLeadStatusGlobal } from "@/lib/repo/leads";
-import { addEvent } from "@/lib/repo/events";
-
+import { addEvent, listEventsForLead } from "@/lib/repo/events";
+import { getActiveScript } from "@/lib/repo/scripts";
+import { generateAgentResponse } from "@/lib/ai/responder";
+import { sendWhatsAppMessage } from "@/lib/integrations/whatsapp";
 // Desafio de verificação do Webhook (Meta)
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -69,6 +71,42 @@ export async function POST(req: NextRequest) {
       // Atualizar status para RESPONDENDO se não estiver em estágio final
       if (lead.status !== "FECHADO" && lead.status !== "PERDIDO") {
         await updateLeadStatusGlobal(lead.id, "RESPONDENDO");
+      }
+
+      // Buscar o script ativo
+      const script = await getActiveScript(lead.mode, "WHATSAPP");
+      
+      if (script) {
+        // Obter histórico
+        const events = await listEventsForLead(lead.id, lead.userId);
+        const history = events.map(e => ({
+          role: e.direction === "ENTRADA" ? "user" : "assistant",
+          content: e.content
+        })) as { role: "user" | "assistant", content: string }[];
+
+        // Chamar AI
+        const aiReply = await generateAgentResponse(lead.id, script.content, history);
+
+        if (aiReply) {
+          // Enviar resposta
+          const sendRes = await sendWhatsAppMessage({
+            to: fromNumber,
+            message: aiReply,
+          });
+
+          if (sendRes.ok) {
+            // Salvar saída
+            await addEvent({
+              leadId: lead.id,
+              channel: "WHATSAPP",
+              direction: "SAIDA",
+              content: aiReply,
+              scriptId: script.id,
+            });
+          } else {
+            console.error("Falha ao enviar mensagem de volta para o cliente:", sendRes.error);
+          }
+        }
       }
     } else {
       console.warn(`Lead não encontrado para o número: ${fromNumber}`);

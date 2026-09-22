@@ -5,11 +5,12 @@ export const dynamic = "force-dynamic";
 const integrations = [
   {
     key: "WHATSAPP_API_TOKEN",
+    altKey: "ZAPI_INSTANCE_ID",
     name: "WhatsApp",
     description:
       "Usado para enviar as mensagens de prospecção do Modo 1 e 2. Implemente em src/lib/integrations/whatsapp.ts.",
-    envVars: ["WHATSAPP_API_TOKEN", "WHATSAPP_PHONE_NUMBER_ID"],
-    suggestions: "Meta Cloud API, Twilio WhatsApp, Z-API",
+    envVars: ["ZAPI_INSTANCE_ID", "ZAPI_TOKEN", "ZAPI_CLIENT_TOKEN"],
+    suggestions: "Z-API, Meta Cloud API, Twilio WhatsApp",
   },
   {
     key: "INSTAGRAM_API_TOKEN",
@@ -29,7 +30,7 @@ const integrations = [
   },
 ];
 
-export default function IntegrationsPage() {
+export default async function IntegrationsPage() {
   return (
     <div className="space-y-5">
       <div>
@@ -48,7 +49,7 @@ export default function IntegrationsPage() {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {integrations.map((i) => {
-          const connected = Boolean(process.env[i.key]);
+          const connected = Boolean(process.env[i.key] || (i.altKey && process.env[i.altKey]));
           return (
             <div key={i.key} className="card p-5">
               <div className="flex items-center justify-between">

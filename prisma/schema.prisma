@@ -13,6 +13,10 @@ model User {
   name          String
   passwordHash  String   @map("password_hash")
   isAdmin       Boolean  @default(false) @map("is_admin")
+  isApproved    Boolean  @default(false) @map("is_approved")
+  googleAccessToken  String? @map("google_access_token")
+  googleRefreshToken String? @map("google_refresh_token")
+  googleTokenExpiry  DateTime? @map("google_token_expiry")
   createdAt     DateTime @default(now()) @map("created_at")
 
   auditLogs     AuditLog[]
