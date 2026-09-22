@@ -2,10 +2,11 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function check() {
-  const scripts = await prisma.script.findMany();
-  const leads = await prisma.lead.findMany();
-  console.log('Scripts:', scripts.length);
-  console.log('Leads:', leads.map(l => l.phone));
+  const events = await prisma.conversationEvent.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 5
+  });
+  console.log('Events:', events.length, events);
 }
 
 check().finally(() => prisma.$disconnect());

@@ -21,7 +21,8 @@ export function proxy(request: NextRequest) {
 
   // Cron (Vercel Cron ou teste manual) não manda cookie de sessão — a
   // própria rota confere o header Authorization contra CRON_SECRET.
-  if (pathname.startsWith("/api/cron/")) {
+  // Webhooks também não enviam cookie de sessão, eles têm sua própria autenticação.
+  if (pathname.startsWith("/api/cron/") || pathname.startsWith("/api/webhooks/")) {
     return NextResponse.next();
   }
 
