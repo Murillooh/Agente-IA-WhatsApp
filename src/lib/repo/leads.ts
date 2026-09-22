@@ -132,37 +132,43 @@ function normalizeInstagram(v: string | null | undefined): string | null {
   return t || null;
 }
 
+function phonesMatch(p1: string | null | undefined, p2: string | null | undefined): boolean {
+  const n1 = normalizePhone(p1);
+  const n2 = normalizePhone(p2);
+  if (!n1 || !n2) return false;
+  // Exige no mínimo 10 dígitos (DDD + 8 ou 9 dígitos) para evitar falsos positivos
+  if (n1.length < 10 || n2.length < 10) return n1 === n2;
+  return n1.endsWith(n2) || n2.endsWith(n1);
+}
+
 export async function findDuplicateLead(
   userId: string,
   input: { whatsapp?: string | null; phone?: string | null; instagram?: string | null }
 ): Promise<Lead | null> {
-  const phoneCandidates = [normalizePhone(input.whatsapp), normalizePhone(input.phone)].filter(
-    (v): v is string => v !== null
-  );
+  const phoneCandidates = [input.whatsapp, input.phone].filter(Boolean);
   const ig = normalizeInstagram(input.instagram);
   if (phoneCandidates.length === 0 && !ig) return null;
 
   const leads = await listLeads(userId);
   for (const lead of leads) {
     if (ig && normalizeInstagram(lead.instagram) === ig) return lead;
-    if (phoneCandidates.length > 0) {
-      const leadPhones = [normalizePhone(lead.whatsapp), normalizePhone(lead.phone)].filter(
-        (v): v is string => v !== null
-      );
-      if (leadPhones.some((lp) => phoneCandidates.includes(lp))) return lead;
+    
+    for (const cand of phoneCandidates) {
+      if (phonesMatch(cand, lead.whatsapp) || phonesMatch(cand, lead.phone)) {
+        return lead;
+      }
     }
   }
   return null;
 }
 
 export async function findLeadByPhoneGlobal(phone: string): Promise<Lead | null> {
-  const normalized = normalizePhone(phone);
-  if (!normalized) return null;
+  if (!normalizePhone(phone)) return null;
 
   // We search globally, without userId context, because webhooks arrive without it
   const rows = await prisma.lead.findMany();
   for (const lead of rows) {
-    if (normalizePhone(lead.whatsapp) === normalized || normalizePhone(lead.phone) === normalized) {
+    if (phonesMatch(phone, lead.whatsapp) || phonesMatch(phone, lead.phone)) {
       return rowToLead(lead);
     }
   }
