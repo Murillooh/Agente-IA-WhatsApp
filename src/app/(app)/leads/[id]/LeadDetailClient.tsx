@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PhoneCall, Loader2, CalendarPlus, CheckCircle2, XCircle, Pencil, Tag, X } from "lucide-react";
 import { StatusBadge, ModeBadge, ChannelBadge } from "@/components/Badges";
@@ -101,6 +101,20 @@ export function LeadDetailClient({
     router.refresh();
   }
 
+  useEffect(() => {
+    // Atualiza a tela a cada 5 segundos para puxar novas mensagens
+    const interval = setInterval(() => {
+      router.refresh();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [router]);
+
+  // Usado para auto-scroll até a última mensagem
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [events]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -156,39 +170,53 @@ export function LeadDetailClient({
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <div className="card p-6">
-            <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
-              Esboço da conversa (timeline)
-            </h2>
-            <ul className="mt-4 space-y-4">
+          <div className="card p-0 overflow-hidden flex flex-col h-[600px]">
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+              <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                Chat ao vivo
+              </h2>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 bg-slate-50 dark:bg-[#0b141a] space-y-4">
               {events.length === 0 && (
-                <li className="text-sm text-slate-400 dark:text-slate-500">
-                  Nenhum evento ainda.
-                </li>
+                <div className="flex justify-center items-center h-full">
+                  <span className="text-sm text-slate-400 dark:text-slate-500">
+                    Nenhuma mensagem ainda.
+                  </span>
+                </div>
               )}
-              {events.map((ev) => (
-                <li key={ev.id} className="flex gap-3">
-                  <div
-                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${CHANNEL_DOT[ev.channel]}`}
-                  />
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <ChannelBadge channel={ev.channel} />
-                      <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                        {ev.direction === "SAIDA" ? "enviado" : "recebido"} ·{" "}
-                        {new Date(ev.createdAt).toLocaleString("pt-BR", {
-                          dateStyle: "short",
-                          timeStyle: "short",
-                        })}
-                      </span>
+              {events.map((ev) => {
+                const isAssistant = ev.direction === "SAIDA";
+                return (
+                  <div key={ev.id} className={`flex w-full ${isAssistant ? "justify-end" : "justify-start"}`}>
+                    <div className={`relative max-w-[85%] rounded-2xl px-4 py-2 shadow-sm ${
+                      isAssistant 
+                        ? "bg-indigo-600 text-white rounded-tr-sm" 
+                        : "bg-white dark:bg-[#202c33] text-slate-800 dark:text-slate-100 rounded-tl-sm ring-1 ring-slate-200 dark:ring-transparent"
+                    }`}>
+                      <div className="flex flex-col gap-1">
+                        <p className="text-[14px] leading-relaxed whitespace-pre-wrap">{ev.content}</p>
+                        <div className={`flex items-center gap-1.5 justify-end text-[10px] ${isAssistant ? "text-indigo-200" : "text-slate-400 dark:text-slate-400"}`}>
+                          <span>{ev.channel}</span>
+                          <span>•</span>
+                          <span>
+                            {new Date(ev.createdAt).toLocaleString("pt-BR", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <p className="mt-1 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-                      {ev.content}
-                    </p>
                   </div>
-                </li>
-              ))}
-            </ul>
+                );
+              })}
+              <div ref={messagesEndRef} />
+            </div>
 
             <form
               onSubmit={addNote}
