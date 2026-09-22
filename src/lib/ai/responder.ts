@@ -75,6 +75,7 @@ ${systemPrompt}`,
     });
 
     const responseMessage = response.choices[0].message;
+    console.log("OpenAI Response:", JSON.stringify(responseMessage, null, 2));
 
     // Se o modelo decidiu chamar uma tool (ex: agendar reunião)
     if (responseMessage.tool_calls) {
@@ -143,8 +144,20 @@ ${systemPrompt}`,
             });
             return errorResponse.choices[0].message.content;
           }
+        } else {
+          console.warn(`Tool call não suportado: ${toolCall.function.name}`);
         }
       }
+      // Se chamou tools, mas o content ainda é nulo e não retornamos de dentro do loop
+      if (!responseMessage.content) {
+        console.warn("OpenAI retornou tool_calls mas o content está vazio após processamento.");
+        return "Estou verificando sua solicitação...";
+      }
+    }
+
+    if (!responseMessage.content) {
+      console.warn("OpenAI retornou content nulo e sem tool_calls válidos.");
+      return "Desculpe, pode reformular?";
     }
 
     return responseMessage.content;

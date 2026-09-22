@@ -107,6 +107,8 @@ export async function POST(req: NextRequest) {
           } else {
             console.error("Falha ao enviar mensagem de volta para o cliente:", sendRes.error);
           }
+        } else {
+          console.warn(`aiReply retornou nulo ou vazio para o lead ${lead.id}`);
         }
       }
     } else {
