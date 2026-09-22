@@ -145,7 +145,7 @@ ${systemPrompt}`,
             return errorResponse.choices[0].message.content;
           }
         } else {
-          console.warn(`Tool call não suportado: ${toolCall.function.name}`);
+          console.warn(`Tool call não suportado: ${toolCall.type === "function" ? toolCall.function.name : toolCall.type}`);
         }
       }
       // Se chamou tools, mas o content ainda é nulo e não retornamos de dentro do loop
