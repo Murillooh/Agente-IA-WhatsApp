@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, XCircle, CalendarClock, CalendarCog } from "lucide-react";
+import { CheckCircle2, XCircle, CalendarClock, CalendarCog, ExternalLink } from "lucide-react";
 import type { Meeting } from "@/lib/types";
 
 type MeetingRow = Meeting & { leadName: string };
@@ -93,6 +93,21 @@ export function MeetingsClient({ meetings }: { meetings: MeetingRow[] }) {
                 <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{m.notes || "—"}</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
+                    {(() => {
+                      const gcalMatch = m.notes?.match(/(https:\/\/calendar\.google\.com\/calendar\/event\?eid=[\w]+)/);
+                      const gcalLink = gcalMatch ? gcalMatch[1] : null;
+                      return gcalLink ? (
+                        <a
+                          href={gcalLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Abrir no Google Calendar"
+                          className="text-slate-400 transition-colors hover:text-blue-600 dark:text-slate-500 dark:hover:text-blue-400"
+                        >
+                          <ExternalLink size={16} />
+                        </a>
+                      ) : null;
+                    })()}
                     <button
                       onClick={() => setRescheduling(m)}
                       title="Reagendar"

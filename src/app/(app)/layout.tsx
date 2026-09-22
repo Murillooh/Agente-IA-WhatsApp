@@ -7,9 +7,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const isAdmin = session ? await isUserAdmin(session.userId) : false;
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar isAdmin={isAdmin} />
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-transparent">
         <div className="mx-auto max-w-screen-2xl px-8 py-8 2xl:px-12">{children}</div>
       </main>
     </div>

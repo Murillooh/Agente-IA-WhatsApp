@@ -118,42 +118,97 @@ export default async function DashboardPage({
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="card p-6 xl:col-span-2">
-          <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
-            Funil de status
-          </h2>
-          <ul className="mt-5 space-y-4">
-            {FUNNEL_ORDER.map((status) => {
-              const count = byStatus[status];
-              const pct = Math.round((count / maxCount) * 100);
-              const share = totalLeads > 0 ? Math.round((count / totalLeads) * 100) : 0;
-              return (
-                <li key={status}>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-600 dark:text-slate-400">
-                      {STATUS_LABELS[status]}
-                    </span>
-                    <span className="text-slate-400 dark:text-slate-500">
-                      <span className="font-semibold text-slate-900 dark:text-white">
-                        {count}
+        {/* Coluna Esquerda (2/3 da tela em desktop) */}
+        <div className="flex flex-col gap-6 xl:col-span-2">
+          {/* Funil de status */}
+          <div className="card p-6">
+            <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
+              Funil de status
+            </h2>
+            <ul className="mt-5 space-y-4">
+              {FUNNEL_ORDER.map((status) => {
+                const count = byStatus[status];
+                const pct = Math.round((count / maxCount) * 100);
+                const share = totalLeads > 0 ? Math.round((count / totalLeads) * 100) : 0;
+                return (
+                  <li key={status}>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-600 dark:text-slate-400">
+                        {STATUS_LABELS[status]}
                       </span>
-                      {" · "}
-                      {share}%
-                    </span>
-                  </div>
-                  <div className="mt-1.5 h-2.5 rounded-full bg-slate-100 dark:bg-slate-800">
-                    <div
-                      className={`h-2.5 rounded-full transition-[width] duration-500 ${FUNNEL_COLORS[status]}`}
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+                      <span className="text-slate-400 dark:text-slate-500">
+                        <span className="font-semibold text-slate-900 dark:text-white">
+                          {count}
+                        </span>
+                        {" · "}
+                        {share}%
+                      </span>
+                    </div>
+                    <div className="mt-1.5 h-2.5 rounded-full bg-slate-100 dark:bg-slate-800">
+                      <div
+                        className={`h-2.5 rounded-full transition-[width] duration-500 ${FUNNEL_COLORS[status]}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* Conversão por origem */}
+          <div className="card flex-1 flex flex-col p-6">
+            <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
+              Conversão por origem
+            </h2>
+            {bySource.length === 0 ? (
+              <p className="mt-5 text-sm text-slate-400 dark:text-slate-500">
+                Nenhum lead {periodActive ? "no período" : "ainda"}.
+              </p>
+            ) : (
+              <div className="mt-4 overflow-x-auto flex-1">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-slate-100 text-xs font-medium uppercase tracking-wide text-slate-400 dark:border-slate-800 dark:text-slate-500">
+                    <tr>
+                      <th className="py-2 pr-3">Origem</th>
+                      <th className="py-2 pr-3">Leads</th>
+                      <th className="py-2 pr-3">Fechados</th>
+                      <th className="py-2">Conversão</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bySource.map((s) => {
+                      const rate = s.total > 0 ? Math.round((s.closed / s.total) * 100) : 0;
+                      return (
+                        <tr
+                          key={s.source}
+                          className="border-b border-slate-50 last:border-0 dark:border-slate-800/60"
+                        >
+                          <td className="py-2.5 pr-3 text-slate-700 dark:text-slate-300">
+                            {s.source}
+                          </td>
+                          <td className="py-2.5 pr-3 text-slate-500 dark:text-slate-400">
+                            {s.total}
+                          </td>
+                          <td className="py-2.5 pr-3 text-slate-500 dark:text-slate-400">
+                            {s.closed}
+                          </td>
+                          <td className="py-2.5 font-medium text-slate-900 dark:text-white">
+                            {rate}%
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
 
+        {/* Coluna Direita (1/3 da tela em desktop) */}
         <div className="flex flex-col gap-6">
+          {/* Próximas reuniões */}
           <div className="card p-6">
             <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
               Próximas reuniões
@@ -196,6 +251,7 @@ export default async function DashboardPage({
             </ul>
           </div>
 
+          {/* Atividade recente */}
           <div className="card flex-1 p-6">
             <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
               Atividade recente
@@ -232,73 +288,24 @@ export default async function DashboardPage({
               ))}
             </ul>
           </div>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="card p-6 xl:col-span-2">
-          <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
-            Conversão por origem
-          </h2>
-          {bySource.length === 0 ? (
-            <p className="mt-5 text-sm text-slate-400 dark:text-slate-500">
-              Nenhum lead {periodActive ? "no período" : "ainda"}.
-            </p>
-          ) : (
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-slate-100 text-xs font-medium uppercase tracking-wide text-slate-400 dark:border-slate-800 dark:text-slate-500">
-                  <tr>
-                    <th className="py-2 pr-3">Origem</th>
-                    <th className="py-2 pr-3">Leads</th>
-                    <th className="py-2 pr-3">Fechados</th>
-                    <th className="py-2">Conversão</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bySource.map((s) => {
-                    const rate = s.total > 0 ? Math.round((s.closed / s.total) * 100) : 0;
-                    return (
-                      <tr
-                        key={s.source}
-                        className="border-b border-slate-50 last:border-0 dark:border-slate-800/60"
-                      >
-                        <td className="py-2.5 pr-3 text-slate-700 dark:text-slate-300">
-                          {s.source}
-                        </td>
-                        <td className="py-2.5 pr-3 text-slate-500 dark:text-slate-400">
-                          {s.total}
-                        </td>
-                        <td className="py-2.5 pr-3 text-slate-500 dark:text-slate-400">
-                          {s.closed}
-                        </td>
-                        <td className="py-2.5 font-medium text-slate-900 dark:text-white">
-                          {rate}%
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+          {/* Tempo médio até fechar */}
+          <div className="card p-6">
+            <div className={`flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400`}>
+              <Timer size={18} strokeWidth={2.25} />
             </div>
-          )}
-        </div>
-
-        <div className="card p-6">
-          <div className={`flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400`}>
-            <Timer size={18} strokeWidth={2.25} />
+            <p className="mt-3 text-xs font-medium text-slate-500 dark:text-slate-400">
+              Tempo médio até fechar
+            </p>
+            <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+              {avgDays === null ? "—" : `${avgDays.toFixed(1)} dias`}
+            </p>
+            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+              {avgDays === null
+                ? "Nenhum lead fechado ainda."
+                : "Da criação do lead até o fechamento."}
+            </p>
           </div>
-          <p className="mt-3 text-xs font-medium text-slate-500 dark:text-slate-400">
-            Tempo médio até fechar
-          </p>
-          <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {avgDays === null ? "—" : `${avgDays.toFixed(1)} dias`}
-          </p>
-          <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
-            {avgDays === null
-              ? "Nenhum lead fechado ainda."
-              : "Da criação do lead até o fechamento."}
-          </p>
         </div>
       </div>
     </div>

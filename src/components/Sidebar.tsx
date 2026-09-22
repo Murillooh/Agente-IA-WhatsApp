@@ -42,7 +42,7 @@ export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
   return (
     <aside
       className={clsx(
-        "flex h-screen shrink-0 flex-col border-r border-slate-200 bg-white transition-all duration-300 dark:border-slate-800 dark:bg-[#0b1220]",
+        "relative flex h-screen shrink-0 flex-col border-r border-slate-200 bg-white transition-all duration-300 dark:border-slate-800 dark:bg-[#0b1220]",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
@@ -61,6 +61,15 @@ export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
           </div>
         )}
       </div>
+
+      {/* Toggle button */}
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="absolute -right-3 top-7 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors z-10"
+        title={isCollapsed ? "Expandir" : "Recolher"}
+      >
+        {isCollapsed ? <ChevronRight size={14} strokeWidth={2.5} /> : <ChevronLeft size={14} strokeWidth={2.5} />}
+      </button>
 
       <nav className="flex-1 space-y-1 px-3 mt-2 overflow-hidden">
         {links.map(({ href, label, icon: Icon }) => {
@@ -102,17 +111,6 @@ export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
         >
           <LogOut size={17} className="shrink-0 text-slate-400 dark:text-slate-500" />
           {!isCollapsed && <span className="whitespace-nowrap">Sair</span>}
-        </button>
-      </div>
-      
-      {/* Toggle button */}
-      <div className="border-t border-slate-200 p-3 flex justify-center dark:border-slate-800">
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="flex h-8 w-full items-center justify-center rounded-lg bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:bg-slate-800/50 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
-          title={isCollapsed ? "Expandir" : "Recolher"}
-        >
-          {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       </div>
     </aside>
