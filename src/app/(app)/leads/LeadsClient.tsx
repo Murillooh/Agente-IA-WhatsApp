@@ -270,7 +270,7 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
                     {lead.name}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
+                <td className="px-4 py-3 text-slate-500 dark:text-slate-400 max-w-[150px] truncate sm:max-w-none sm:whitespace-normal sm:break-all" title={lead.whatsapp || lead.phone || lead.instagram || ""}>
                   {lead.whatsapp || lead.phone || lead.instagram || "—"}
                 </td>
                 <td className="px-4 py-3">
