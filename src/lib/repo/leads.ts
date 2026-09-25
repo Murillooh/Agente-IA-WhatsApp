@@ -7,6 +7,7 @@ function rowToLead(r: any): Lead {
     id: r.id,
     userId: r.userId,
     name: r.name,
+    email: r.email,
     phone: r.phone,
     whatsapp: r.whatsapp,
     instagram: r.instagram,
@@ -53,6 +54,7 @@ export async function createLead(
   userId: string,
   input: {
     name: string;
+    email?: string | null;
     phone?: string | null;
     whatsapp?: string | null;
     instagram?: string | null;
@@ -64,6 +66,7 @@ export async function createLead(
     data: {
       userId,
       name: input.name,
+      email: input.email || null,
       phone: input.phone || null,
       whatsapp: input.whatsapp || null,
       instagram: input.instagram || null,
@@ -95,7 +98,7 @@ export async function updateLeadStatus(
 export async function updateLead(
   id: string,
   userId: string,
-  input: Partial<Pick<Lead, "name" | "phone" | "whatsapp" | "instagram" | "source" | "mode">>
+  input: Partial<Pick<Lead, "name" | "email" | "phone" | "whatsapp" | "instagram" | "source" | "mode">>
 ): Promise<Lead | null> {
   const current = await getLead(id, userId);
   if (!current) return null;
@@ -104,6 +107,7 @@ export async function updateLead(
     where: { id, userId },
     data: {
       name: input.name ?? current.name,
+      email: input.email !== undefined ? input.email : current.email,
       phone: input.phone !== undefined ? input.phone : current.phone,
       whatsapp: input.whatsapp !== undefined ? input.whatsapp : current.whatsapp,
       instagram: input.instagram !== undefined ? input.instagram : current.instagram,

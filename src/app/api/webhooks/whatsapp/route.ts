@@ -4,6 +4,7 @@ import { addEvent, listEventsForLead } from "@/lib/repo/events";
 import { getActiveScript } from "@/lib/repo/scripts";
 import { generateAgentResponse } from "@/lib/ai/responder";
 import { sendWhatsAppMessage } from "@/lib/integrations/whatsapp";
+import prisma from "@/lib/prisma";
 // Desafio de verificação do Webhook (Meta)
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -51,7 +52,27 @@ export async function POST(req: NextRequest) {
     console.log(`Mensagem recebida do Z-API: ${fromNumber} - ${messageText}`);
 
     // Buscar o lead pelo telefone
-    const lead = await findLeadByPhoneGlobal(fromNumber);
+    let lead = await findLeadByPhoneGlobal(fromNumber);
+
+    if (!lead) {
+      console.warn(`Lead não encontrado para o número: ${fromNumber}. Criando um lead não cadastrado...`);
+      // Pega o primeiro usuário admin ou qualquer usuário para ser o "dono" do lead.
+      const defaultUser = await prisma.user.findFirst({
+        orderBy: { createdAt: "asc" }
+      });
+      if (defaultUser) {
+        lead = await prisma.lead.create({
+          data: {
+            userId: defaultUser.id,
+            name: "Não Cadastrado",
+            whatsapp: fromNumber,
+            phone: fromNumber,
+            mode: "MODO_1",
+            status: "NOVO"
+          }
+        }) as any;
+      }
+    }
 
     if (lead) {
       // Salvar o evento de conversa (entrada)
@@ -104,9 +125,11 @@ export async function POST(req: NextRequest) {
         } else {
           console.warn(`aiReply retornou nulo ou vazio para o lead ${lead.id}`);
         }
+      } else {
+        console.warn(`Nenhum script ativo encontrado para o lead ${lead.id}`);
       }
     } else {
-      console.warn(`Lead não encontrado para o número: ${fromNumber}`);
+      console.warn(`Não foi possível criar ou encontrar lead para o número: ${fromNumber}`);
     }
 
     return NextResponse.json({ ok: true }, { status: 200 });

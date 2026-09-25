@@ -36,6 +36,27 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "register_lead",
+      description: "Registra os dados do cliente (nome e email) no sistema quando ele ainda não está cadastrado. Chame esta função apenas quando o cliente não cadastrado fornecer os dados solicitados.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description: "Nome completo do cliente",
+          },
+          email: {
+            type: "string",
+            description: "E-mail do cliente",
+          },
+        },
+        required: ["name", "email"],
+      },
+    },
+  },
 ];
 
 export async function generateAgentResponse(
@@ -62,10 +83,19 @@ export async function generateAgentResponse(
         content: `Você é um Assistente de Vendas IA (criado por ${lead.user.name}).
 Sua missão é conversar com o cliente, responder dúvidas e marcar uma reunião (call) se houver intenção.
 Hoje é: ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })} (Horário de Brasília).
-Nome do Cliente (se souber): ${lead.name !== "Novo Contato" ? lead.name : "Cliente"}
+Nome do Cliente (se souber): ${lead.name !== "Não Cadastrado" ? lead.name : "Cliente"}
 
+${lead.name === "Não Cadastrado" ? `
+REGRA CRÍTICA PARA CLIENTES NÃO CADASTRADOS:
+Notei que este cliente não está cadastrado em nosso sistema.
+Sua prioridade máxima inicial é cumprimentar o cliente, perguntar como pode ajudá-lo e INFORMAR que ele não está cadastrado, solicitando gentilmente seus dados: Nome Completo e E-mail (o telefone já temos).
+Exemplo: "Olá! Bom dia, como posso ajudar? Vi aqui que você não está cadastrado em nosso sistema. Poderia me passar seu nome completo e e-mail para eu realizar seu cadastro?"
+Assim que o cliente fornecer os dados, chame IMEDIATAMENTE a ferramenta 'register_lead' com o nome e e-mail.
+Só depois disso, siga com o script normal de vendas.
+` : `
 REGRA CRÍTICA PARA AGENDAMENTO DE REUNIÃO:
 Se o cliente quiser marcar a reunião e vocês definirem um horário, você deve OBRIGATORIAMENTE pedir o e-mail dele ANTES de chamar a função 'schedule_meeting'. Diga algo como: "Perfeito, agendado! Por favor, qual é o seu melhor e-mail para eu te enviar o convite na agenda?". Somente depois de ele informar o e-mail, você chama a ferramenta.
+`}
 
 Instruções de Comportamento (Script Ativo):
 ${systemPrompt}`,
@@ -153,6 +183,30 @@ ${systemPrompt}`,
             });
             return errorResponse.choices[0].message.content;
           }
+        } else if (toolCall.type === "function" && toolCall.function.name === "register_lead") {
+          const args = JSON.parse(toolCall.function.arguments);
+          
+          await prisma.lead.update({
+            where: { id: lead.id },
+            data: {
+              name: args.name,
+              email: args.email,
+            },
+          });
+
+          messages.push(responseMessage);
+          messages.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: `Cadastro realizado com sucesso! Dados salvos: Nome = ${args.name}, Email = ${args.email}.`,
+          });
+
+          const secondResponse = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages,
+          });
+
+          return secondResponse.choices[0].message.content;
         } else {
           console.warn(`Tool call não suportado: ${toolCall.type === "function" ? toolCall.function.name : toolCall.type}`);
         }

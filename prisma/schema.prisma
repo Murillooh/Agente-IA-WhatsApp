@@ -41,6 +41,7 @@ model Lead {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
   name      String
+  email     String?
   phone     String?
   whatsapp  String?
   instagram String?
