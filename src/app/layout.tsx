@@ -38,7 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full antialiased h-full">
         {children}
-        <div className="fixed right-5 top-5 z-40">
+        <div className="fixed bottom-5 right-5 z-40 md:bottom-auto md:top-5">
           <ThemeToggle />
         </div>
       </body>
