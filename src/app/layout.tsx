@@ -4,8 +4,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MeetCloser — Automação de prospecção",
-  description: "Prospecção automatizada por WhatsApp, Instagram e ligação para fechar reuniões.",
+  title: "Munago — Automações de prospecção",
+  description: "Sistema Inteligente de Controle de Tarefas e Prospecção Automatizada.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
