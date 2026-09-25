@@ -28,10 +28,10 @@ export default async function ProfilePage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 max-w-7xl">
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 xl:grid-cols-3 max-w-7xl">
         
         {/* Conta */}
-        <div className="relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/[0.06] dark:bg-[#0c121e]">
+        <div className="relative flex h-fit flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/[0.06] dark:bg-[#0c121e]">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-white">
               Sua Conta
@@ -41,7 +41,7 @@ export default async function ProfilePage() {
             </div>
           </div>
           
-          <dl className="mt-auto space-y-4 text-sm">
+          <dl className="space-y-4 text-sm">
             <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4 dark:bg-white/[0.02] border border-transparent dark:border-white/5">
               <dt className="font-semibold text-slate-500 dark:text-slate-400">Nome</dt>
               <dd className="font-bold text-slate-900 dark:text-white">{user.name}</dd>
@@ -54,7 +54,7 @@ export default async function ProfilePage() {
         </div>
 
         {/* Google Agenda */}
-        <div className="relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/[0.06] dark:bg-[#0c121e]">
+        <div className="relative flex h-fit flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/[0.06] dark:bg-[#0c121e]">
           <div className="mb-4 flex items-start justify-between">
             <div>
               <h2 className="text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-white">
@@ -69,7 +69,7 @@ export default async function ProfilePage() {
             </div>
           </div>
           
-          <div className="mt-auto flex flex-col gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-5 dark:border-white/5 dark:bg-white/[0.02]">
+          <div className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-5 dark:border-white/5 dark:bg-white/[0.02]">
             <div className="flex items-center gap-4">
               {isGoogleConnected ? (
                 <>
@@ -113,7 +113,7 @@ export default async function ProfilePage() {
         </div>
 
         {/* Segurança (Formulário) */}
-        <div className="relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/[0.06] dark:bg-[#0c121e]">
+        <div className="relative flex h-fit flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/[0.06] dark:bg-[#0c121e]">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-white">
               Segurança
@@ -123,14 +123,14 @@ export default async function ProfilePage() {
             </div>
           </div>
           
-          <div className="mt-auto rounded-2xl border border-slate-100 p-6 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01]">
+          <div className="rounded-2xl border border-slate-100 p-6 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01]">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-5">Trocar Senha</h3>
             <ChangePasswordForm />
           </div>
         </div>
           
         {/* Assinatura */}
-        <div className="relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/[0.06] dark:bg-[#0c121e]">
+        <div className="relative flex h-fit flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/[0.06] dark:bg-[#0c121e]">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-white">
               Assinatura
@@ -139,7 +139,7 @@ export default async function ProfilePage() {
               <CreditCard size={16} />
             </div>
           </div>
-          <div className="mt-auto rounded-2xl border border-slate-100 bg-slate-50 p-5 dark:border-white/5 dark:bg-white/[0.02]">
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5 dark:border-white/5 dark:bg-white/[0.02]">
             <div className="flex items-center gap-3 mb-4">
               <span className="flex h-3 w-3 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -155,7 +155,7 @@ export default async function ProfilePage() {
         </div>
 
         {/* Preferências */}
-        <div className="relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/[0.06] dark:bg-[#0c121e]">
+        <div className="relative flex h-fit flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/[0.06] dark:bg-[#0c121e]">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-white">
               Preferências
@@ -165,7 +165,7 @@ export default async function ProfilePage() {
             </div>
           </div>
           
-          <div className="mt-auto space-y-4">
+          <div className="space-y-4">
             <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4 dark:bg-white/[0.02] border border-transparent dark:border-white/5 cursor-pointer hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
               <div className="flex items-center gap-3">
                 <BellRing size={16} className="text-slate-400" />
