@@ -55,23 +55,8 @@ export async function POST(req: NextRequest) {
     let lead = await findLeadByPhoneGlobal(fromNumber);
 
     if (!lead) {
-      console.warn(`Lead não encontrado para o número: ${fromNumber}. Criando um lead não cadastrado...`);
-      // Pega o primeiro usuário admin ou qualquer usuário para ser o "dono" do lead.
-      const defaultUser = await prisma.user.findFirst({
-        orderBy: { createdAt: "asc" }
-      });
-      if (defaultUser) {
-        lead = await prisma.lead.create({
-          data: {
-            userId: defaultUser.id,
-            name: "Não Cadastrado",
-            whatsapp: fromNumber,
-            phone: fromNumber,
-            mode: "MODO_1",
-            status: "NOVO"
-          }
-        }) as any;
-      }
+      console.warn(`Mensagem ignorada: Lead não encontrado para o número ${fromNumber}.`);
+      return NextResponse.json({ ok: true, ignored: "unknown_number" }, { status: 200 });
     }
 
     if (lead) {

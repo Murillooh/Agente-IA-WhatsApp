@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getUserById } from "@/lib/repo/users";
 import { getSession } from "@/lib/auth/session";
 import { ChangePasswordForm } from "./ChangePasswordForm";
-import { CheckCircle2, CircleDashed } from "lucide-react";
+import { CheckCircle2, CircleDashed, User as UserIcon, Shield, CalendarDays, BellRing, Globe, CreditCard } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -16,76 +16,181 @@ export default async function ProfilePage() {
   const isGoogleConnected = Boolean(user.googleRefreshToken);
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-          Perfil
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
+      
+      {/* Header Mais Limpo */}
+      <div className="flex flex-col gap-2 border-b border-slate-200 pb-6 dark:border-white/10">
+        <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+          Perfil e Configurações
         </h1>
-        <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-          Sua conta e senha de acesso.
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+          Gerencie sua conta, integrações de agenda e credenciais de segurança.
         </p>
       </div>
 
-      <div className="max-w-md space-y-6">
-        <div className="card p-6">
-          <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
-            Conta
-          </h2>
-          <dl className="mt-3 space-y-2 text-sm">
-            <div className="flex justify-between gap-3">
-              <dt className="text-slate-400 dark:text-slate-500">Nome</dt>
-              <dd className="text-right text-slate-700 dark:text-slate-300">{user.name}</dd>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 max-w-7xl">
+        
+        {/* Conta */}
+        <div className="relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/[0.06] dark:bg-[#0c121e]">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-white">
+              Sua Conta
+            </h2>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 dark:bg-white/[0.05] text-slate-500">
+              <UserIcon size={16} />
             </div>
-            <div className="flex justify-between gap-3">
-              <dt className="text-slate-400 dark:text-slate-500">Usuário</dt>
-              <dd className="text-right text-slate-700 dark:text-slate-300">{user.username}</dd>
+          </div>
+          
+          <dl className="mt-auto space-y-4 text-sm">
+            <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4 dark:bg-white/[0.02] border border-transparent dark:border-white/5">
+              <dt className="font-semibold text-slate-500 dark:text-slate-400">Nome</dt>
+              <dd className="font-bold text-slate-900 dark:text-white">{user.name}</dd>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4 dark:bg-white/[0.02] border border-transparent dark:border-white/5">
+              <dt className="font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap mr-4">E-mail</dt>
+              <dd className="font-bold text-slate-900 dark:text-white truncate text-right">{user.username}</dd>
             </div>
           </dl>
         </div>
 
-        <div className="card p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
-              Google Agenda
-            </h2>
-            {isGoogleConnected ? (
-              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/30">
-                <CheckCircle2 size={13} /> Conectado
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-500 ring-1 ring-inset ring-slate-600/15 dark:bg-slate-500/10 dark:text-slate-400 dark:ring-slate-400/20">
-                <CircleDashed size={13} /> Não conectado
-              </span>
-            )}
+        {/* Google Agenda */}
+        <div className="relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/[0.06] dark:bg-[#0c121e]">
+          <div className="mb-4 flex items-start justify-between">
+            <div>
+              <h2 className="text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-white">
+                Google Agenda
+              </h2>
+              <p className="mt-2 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400 pr-4">
+                Conecte para agendamento automático de reuniões via IA.
+              </p>
+            </div>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-white/[0.05] text-slate-500">
+              <CalendarDays size={18} />
+            </div>
           </div>
-          <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-            Conecte sua conta do Google para que a IA agende reuniões automaticamente na sua agenda.
-          </p>
-          <div className="mt-4">
+          
+          <div className="mt-auto flex flex-col gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-5 dark:border-white/5 dark:bg-white/[0.02]">
+            <div className="flex items-center gap-4">
+              {isGoogleConnected ? (
+                <>
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
+                    <CheckCircle2 size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">Conectado</p>
+                    <p className="text-[10px] font-bold tracking-wider uppercase text-slate-500">Sincronização ativa</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                    <CircleDashed size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">Não conectado</p>
+                    <p className="text-[10px] font-bold tracking-wider uppercase text-slate-500">Integração pendente</p>
+                  </div>
+                </>
+              )}
+            </div>
+
             {isGoogleConnected ? (
               <a
                 href="/api/auth/google/disconnect"
-                className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                className="inline-flex w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 dark:border-white/10 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
               >
                 Desconectar
               </a>
             ) : (
               <a
                 href="/api/auth/google/login"
-                className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="inline-flex w-full items-center justify-center rounded-xl border border-transparent bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               >
-                Conectar com o Google
+                Conectar Agora
               </a>
             )}
           </div>
         </div>
 
-        <div className="card p-6">
-          <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
-            Trocar senha
-          </h2>
-          <ChangePasswordForm />
+        {/* Segurança (Formulário) */}
+        <div className="relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/[0.06] dark:bg-[#0c121e]">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-white">
+              Segurança
+            </h2>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 dark:bg-white/[0.05] text-slate-500">
+              <Shield size={16} />
+            </div>
+          </div>
+          
+          <div className="mt-auto rounded-2xl border border-slate-100 p-6 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01]">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-5">Trocar Senha</h3>
+            <ChangePasswordForm />
+          </div>
         </div>
+          
+        {/* Assinatura */}
+        <div className="relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/[0.06] dark:bg-[#0c121e]">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-white">
+              Assinatura
+            </h2>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 dark:bg-white/[0.05] text-slate-500">
+              <CreditCard size={16} />
+            </div>
+          </div>
+          <div className="mt-auto rounded-2xl border border-slate-100 bg-slate-50 p-5 dark:border-white/5 dark:bg-white/[0.02]">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="flex h-3 w-3 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+              </span>
+              <span className="text-sm font-bold text-slate-900 dark:text-white">Plano Pro</span>
+            </div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-4">Ativo • Renovação: 10/11/2026</p>
+            <button className="w-full rounded-xl bg-slate-200/50 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 transition-colors">
+              Gerenciar Assinatura
+            </button>
+          </div>
+        </div>
+
+        {/* Preferências */}
+        <div className="relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/[0.06] dark:bg-[#0c121e]">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-white">
+              Preferências
+            </h2>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 dark:bg-white/[0.05] text-slate-500">
+              <Globe size={16} />
+            </div>
+          </div>
+          
+          <div className="mt-auto space-y-4">
+            <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4 dark:bg-white/[0.02] border border-transparent dark:border-white/5 cursor-pointer hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
+              <div className="flex items-center gap-3">
+                <BellRing size={16} className="text-slate-400" />
+                <div>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">Notificações</p>
+                  <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500">Push e Email</p>
+                </div>
+              </div>
+              <div className="h-5 w-9 rounded-full bg-indigo-500 relative flex items-center px-0.5 shadow-inner">
+                <div className="h-4 w-4 rounded-full bg-white ml-auto shadow-sm" />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4 dark:bg-white/[0.02] border border-transparent dark:border-white/5 cursor-pointer hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
+              <div className="flex items-center gap-3">
+                <Globe size={16} className="text-slate-400" />
+                <div>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">Fuso Horário</p>
+                  <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500">América/SP</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );
