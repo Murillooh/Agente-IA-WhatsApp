@@ -53,10 +53,10 @@ export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
           <Menu size={24} />
         </button>
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm">
-            <Target size={16} strokeWidth={2.25} />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg shadow-sm border border-slate-100 dark:border-slate-800 bg-white overflow-hidden p-1">
+            <img src="/logo-icon.png" alt="Munago Logo" className="w-full h-full object-contain" />
           </div>
-          <span className="font-semibold text-slate-900 dark:text-white tracking-tight">MeetCloser</span>
+          <span className="font-semibold text-slate-900 dark:text-white tracking-tight">Munago</span>
         </div>
       </div>
 
@@ -83,11 +83,9 @@ export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
         {!isCollapsed && (
           <div className="overflow-hidden whitespace-nowrap">
             <p className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
-              MeetCloser
+              Munago
             </p>
-            <p className="text-[10px] leading-tight text-slate-500 dark:text-slate-400">
-              Fechar reuniÃµes, no automÃ¡tico
-            </p>
+            <p className="text-[10px] leading-tight text-slate-500 dark:text-slate-400">Automações de prospecção</p>
           </div>
         )}
       </div>
@@ -148,3 +146,4 @@ export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
     </>
   );
 }
+

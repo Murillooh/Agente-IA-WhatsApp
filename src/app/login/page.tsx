@@ -3,7 +3,7 @@ import { AnimatedAuth } from "@/components/AnimatedAuth";
 import { AuthInfoPanel } from "@/components/AuthInfoPanel";
 
 export const metadata: Metadata = {
-  title: "Entrar — MeetCloser",
+  title: "Entrar — Munago",
 };
 
 export default function LoginPage() {

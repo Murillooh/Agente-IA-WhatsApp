@@ -3,7 +3,7 @@ import { AnimatedAuth } from "@/components/AnimatedAuth";
 import { AuthInfoPanel } from "@/components/AuthInfoPanel";
 
 export const metadata: Metadata = {
-  title: "Criar conta — MeetCloser",
+  title: "Criar conta — Munago",
 };
 
 export default function SignupPage() {
