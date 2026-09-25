@@ -266,7 +266,7 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
                 <td className="px-4 py-3">
                   <button
                     onClick={() => setSelectedLeadForModal(lead)}
-                    className="sm:hidden font-medium text-slate-900 hover:text-indigo-600 hover:underline dark:text-white dark:hover:text-indigo-400"
+                    className="sm:hidden text-left font-medium text-slate-900 hover:text-indigo-600 hover:underline dark:text-white dark:hover:text-indigo-400"
                   >
                     {lead.name}
                   </button>
