@@ -15,6 +15,8 @@ import {
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
+  Menu,
+  X,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -22,6 +24,7 @@ export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const links = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -40,12 +43,39 @@ export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
   }
 
   return (
-    <aside
-      className={clsx(
-        "relative flex h-screen shrink-0 flex-col border-r border-slate-200 bg-white transition-all duration-300 dark:border-slate-800 dark:bg-[#0b1220]",
-        isCollapsed ? "w-16" : "w-64"
+    <>
+      {/* Mobile Top Bar */}
+      <div className="md:hidden flex items-center justify-between bg-white dark:bg-[#0b1220] border-b border-slate-200 dark:border-slate-800 px-4 py-3 shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm">
+            <Target size={16} strokeWidth={2.25} />
+          </div>
+          <span className="font-semibold text-slate-900 dark:text-white tracking-tight">MeetCloser</span>
+        </div>
+        <button
+          onClick={() => setIsMobileOpen(true)}
+          className="p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
+        >
+          <Menu size={24} />
+        </button>
+      </div>
+
+      {/* Mobile Overlay */}
+      {isMobileOpen && (
+        <div 
+          className="md:hidden fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm" 
+          onClick={() => setIsMobileOpen(false)} 
+        />
       )}
-    >
+
+      {/* Sidebar */}
+      <aside
+        className={clsx(
+          "fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-slate-200 bg-white transition-transform duration-300 dark:border-slate-800 dark:bg-[#0b1220] md:static md:translate-x-0",
+          isMobileOpen ? "translate-x-0 w-64" : "-translate-x-full",
+          !isMobileOpen && isCollapsed ? "md:w-16" : "md:w-64"
+        )}
+      >
       <div className={clsx("flex items-center px-5 py-5 relative", isCollapsed ? "justify-center" : "gap-2.5")}>
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm">
           <Target size={18} strokeWidth={2.25} />
@@ -62,10 +92,10 @@ export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
         )}
       </div>
 
-      {/* Toggle button */}
+      {/* Toggle button - only desktop */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-7 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors z-10"
+        className="hidden md:flex absolute -right-3 top-7 h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors z-10"
         title={isCollapsed ? "Expandir" : "Recolher"}
       >
         {isCollapsed ? <ChevronRight size={14} strokeWidth={2.5} /> : <ChevronLeft size={14} strokeWidth={2.5} />}
@@ -78,10 +108,11 @@ export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
             <Link
               key={href}
               href={href}
-              title={isCollapsed ? label : undefined}
+              onClick={() => setIsMobileOpen(false)}
+              title={isCollapsed && !isMobileOpen ? label : undefined}
               className={clsx(
                 "flex items-center rounded-lg py-2 font-medium transition-colors",
-                isCollapsed ? "justify-center px-0" : "gap-3 px-3 text-sm",
+                isCollapsed && !isMobileOpen ? "md:justify-center px-0" : "gap-3 px-3 text-sm",
                 active
                   ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400"
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
@@ -94,7 +125,7 @@ export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
                   active ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 dark:text-slate-500"
                 )}
               />
-              {!isCollapsed && <span className="whitespace-nowrap">{label}</span>}
+              {(!isCollapsed || isMobileOpen) && <span className="whitespace-nowrap">{label}</span>}
             </Link>
           );
         })}
@@ -103,16 +134,17 @@ export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
       <div className="border-t border-slate-200 p-3 dark:border-slate-800">
         <button
           onClick={logout}
-          title={isCollapsed ? "Sair" : undefined}
+          title={isCollapsed && !isMobileOpen ? "Sair" : undefined}
           className={clsx(
             "flex w-full items-center rounded-lg py-2 font-medium text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-700 dark:text-slate-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-400",
-            isCollapsed ? "justify-center px-0" : "gap-3 px-3 text-sm"
+            isCollapsed && !isMobileOpen ? "md:justify-center px-0" : "gap-3 px-3 text-sm"
           )}
         >
           <LogOut size={17} className="shrink-0 text-slate-400 dark:text-slate-500" />
-          {!isCollapsed && <span className="whitespace-nowrap">Sair</span>}
+          {(!isCollapsed || isMobileOpen) && <span className="whitespace-nowrap">Sair</span>}
         </button>
       </div>
     </aside>
+    </>
   );
 }
