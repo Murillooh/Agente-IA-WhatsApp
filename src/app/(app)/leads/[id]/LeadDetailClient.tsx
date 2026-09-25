@@ -109,11 +109,28 @@ export function LeadDetailClient({
     return () => clearInterval(interval);
   }, [router]);
 
-  // Usado para auto-scroll até a última mensagem
+  // Usado para auto-scroll inteligente
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const isFirstRender = useRef(true);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [events]);
+    if (isFirstRender.current) {
+      // No primeiro render, vai direto pro final se houver mensagens
+      messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+      isFirstRender.current = false;
+      return;
+    }
+
+    if (!chatContainerRef.current) return;
+    const container = chatContainerRef.current;
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+
+    // Só auto-scrolla suavemente se o usuário já estiver perto do final da conversa
+    if (isNearBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [events.length]);
 
   return (
     <div className="space-y-6">
@@ -181,7 +198,7 @@ export function LeadDetailClient({
               </h2>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-4 bg-slate-50 dark:bg-[#0b141a] space-y-4">
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 bg-slate-50 dark:bg-[#0b141a] space-y-4">
               {events.length === 0 && (
                 <div className="flex justify-center items-center h-full">
                   <span className="text-sm text-slate-400 dark:text-slate-500">
