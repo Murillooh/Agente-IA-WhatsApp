@@ -45,19 +45,19 @@ export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="md:hidden flex items-center justify-between bg-white dark:bg-[#0b1220] border-b border-slate-200 dark:border-slate-800 px-4 py-3 shrink-0">
+      <div className="md:hidden flex items-center gap-3 bg-white dark:bg-[#0b1220] border-b border-slate-200 dark:border-slate-800 px-4 py-3 shrink-0">
+        <button
+          onClick={() => setIsMobileOpen(true)}
+          className="p-1 -ml-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
+        >
+          <Menu size={24} />
+        </button>
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm">
             <Target size={16} strokeWidth={2.25} />
           </div>
           <span className="font-semibold text-slate-900 dark:text-white tracking-tight">MeetCloser</span>
         </div>
-        <button
-          onClick={() => setIsMobileOpen(true)}
-          className="p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
-        >
-          <Menu size={24} />
-        </button>
       </div>
 
       {/* Mobile Overlay */}
