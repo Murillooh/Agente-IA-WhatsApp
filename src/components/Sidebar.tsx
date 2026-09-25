@@ -77,15 +77,17 @@ export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
         )}
       >
       <div className={clsx("flex items-center px-5 py-5 relative", isCollapsed ? "justify-center" : "gap-2.5")}>
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm">
-          <Target size={18} strokeWidth={2.25} />
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg shadow-sm border border-slate-100 dark:border-slate-800 bg-white overflow-hidden p-1">
+          <img src="/logo-icon.png" alt="Munago Logo" className="w-full h-full object-contain" />
         </div>
         {!isCollapsed && (
           <div className="overflow-hidden whitespace-nowrap">
             <p className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
               Munago
             </p>
-            <p className="text-[10px] leading-tight text-slate-500 dark:text-slate-400">Automações de prospecção</p>
+            <p className="text-[10px] leading-tight text-slate-500 dark:text-slate-400">
+              AutomaÃ§Ãµes de prospecÃ§Ã£o
+            </p>
           </div>
         )}
       </div>
@@ -146,4 +148,3 @@ export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
     </>
   );
 }
-
