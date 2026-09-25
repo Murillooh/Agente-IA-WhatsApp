@@ -24,6 +24,7 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
   const router = useRouter();
   const [showAdd, setShowAdd] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [selectedLeadForModal, setSelectedLeadForModal] = useState<Lead | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [running, setRunning] = useState(false);
   const [view, setView] = useState<"list" | "kanban">("list");
@@ -218,10 +219,10 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
                 />
               </th>
               <th className="px-4 py-3">Nome</th>
-              <th className="px-4 py-3">Contato</th>
-              <th className="px-4 py-3">Modo</th>
+              <th className="hidden px-4 py-3 sm:table-cell">Contato</th>
+              <th className="hidden px-4 py-3 md:table-cell">Modo</th>
               <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Origem</th>
+              <th className="hidden px-4 py-3 lg:table-cell">Origem</th>
             </tr>
           </thead>
           <tbody>
@@ -263,23 +264,29 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
                   />
                 </td>
                 <td className="px-4 py-3">
+                  <button
+                    onClick={() => setSelectedLeadForModal(lead)}
+                    className="sm:hidden font-medium text-slate-900 hover:text-indigo-600 hover:underline dark:text-white dark:hover:text-indigo-400"
+                  >
+                    {lead.name}
+                  </button>
                   <Link
                     href={`/leads/${lead.id}`}
-                    className="font-medium text-slate-900 hover:text-indigo-600 hover:underline dark:text-white dark:hover:text-indigo-400"
+                    className="hidden sm:inline font-medium text-slate-900 hover:text-indigo-600 hover:underline dark:text-white dark:hover:text-indigo-400"
                   >
                     {lead.name}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-slate-500 dark:text-slate-400 max-w-[150px] truncate sm:max-w-none sm:whitespace-normal sm:break-all" title={lead.whatsapp || lead.phone || lead.instagram || ""}>
+                <td className="hidden px-4 py-3 text-slate-500 sm:table-cell sm:whitespace-normal sm:break-all sm:max-w-none dark:text-slate-400" title={lead.whatsapp || lead.phone || lead.instagram || ""}>
                   {lead.whatsapp || lead.phone || lead.instagram || "—"}
                 </td>
-                <td className="px-4 py-3">
+                <td className="hidden px-4 py-3 md:table-cell">
                   <ModeBadge mode={lead.mode} />
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={lead.status} />
                 </td>
-                <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{lead.source || "—"}</td>
+                <td className="hidden px-4 py-3 text-slate-500 lg:table-cell dark:text-slate-400">{lead.source || "—"}</td>
               </tr>
             ))}
           </tbody>
@@ -291,7 +298,48 @@ export function LeadsClient({ leads }: { leads: Lead[] }) {
       {showImport && (
         <ImportCsvModal onClose={() => setShowImport(false)} onDone={() => router.refresh()} />
       )}
+      {selectedLeadForModal && (
+        <LeadMobileModal lead={selectedLeadForModal} onClose={() => setSelectedLeadForModal(null)} />
+      )}
     </div>
+  );
+}
+
+function LeadMobileModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
+  return (
+    <Modal onClose={onClose} title="Detalhes do Lead">
+      <div className="space-y-4">
+        <div>
+          <span className="block text-xs font-medium text-slate-500 dark:text-slate-400">Nome</span>
+          <span className="text-sm font-medium text-slate-900 dark:text-white">{lead.name}</span>
+        </div>
+        <div>
+          <span className="block text-xs font-medium text-slate-500 dark:text-slate-400">Contato</span>
+          <span className="text-sm text-slate-700 dark:text-slate-300 break-all">{lead.whatsapp || lead.phone || lead.instagram || "—"}</span>
+        </div>
+        <div>
+          <span className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Status</span>
+          <StatusBadge status={lead.status} />
+        </div>
+        <div>
+          <span className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Modo</span>
+          <ModeBadge mode={lead.mode} />
+        </div>
+        <div>
+          <span className="block text-xs font-medium text-slate-500 dark:text-slate-400">Origem</span>
+          <span className="text-sm text-slate-700 dark:text-slate-300">{lead.source || "—"}</span>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-4">
+          <button type="button" onClick={onClose} className="btn-secondary">
+            Fechar
+          </button>
+          <Link href={`/leads/${lead.id}`} className="btn-primary">
+            Abrir Lead
+          </Link>
+        </div>
+      </div>
+    </Modal>
   );
 }
 
